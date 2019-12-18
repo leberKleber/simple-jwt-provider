@@ -11,6 +11,7 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to parse config")
 	}
 
+	logrus.WithField("config", cfg).Info("Start provider")
 	if err := web.Serve(cfg.ServerAddress); err != nil {
 		logrus.WithError(err).Fatal("Failed to run server")
 	}

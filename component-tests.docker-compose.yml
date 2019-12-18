@@ -1,0 +1,12 @@
+version: '3.5'
+networks:
+  component-tests:
+    external: true
+    name: component-tests-${BUILD_ID}
+
+services:
+  simple-auth-provider:
+    build:
+      context: .
+    networks:
+    - component-tests
