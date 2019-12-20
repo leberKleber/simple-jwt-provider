@@ -20,9 +20,11 @@ FROM alpine
 
 RUN apk add --update libcap tzdata ca-certificates && rm -rf /var/cache/apk/*
 
-COPY --from=build /src/simple-jwt-provider/simple-jwt-provider simple-jwt-provider
+COPY --from=build /src/simple-jwt-provider/simple-jwt-provider /simple-jwt-provider
 
-RUN setcap CAP_NET_BIND_SERVICE=+eip ./simple-jwt-provider
+COPY db-migrations /db-migrations
+
+RUN setcap CAP_NET_BIND_SERVICE=+eip /simple-jwt-provider
 RUN update-ca-certificates
 
 RUN addgroup -g 1000 -S runnergroup && adduser -u 1001 -S apprunner -G runnergroup

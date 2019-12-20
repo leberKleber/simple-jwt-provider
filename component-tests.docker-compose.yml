@@ -8,5 +8,22 @@ services:
   simple-auth-provider:
     build:
       context: .
+    entrypoint:
+      DATABASE_HOST: "db"
+      DATABASE_PORT: 5432
+      DATABASE_NAME: "simple-auth-provider"
+      DATABASE_USERNAME: "postgres"
+      DATABASE_PASSWORD: "postgres"
+      DATABASE_MIGRATIONS_FILE_PATH: "/db-migrations"
     networks:
     - component-tests
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: "simple-auth-provider"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    networks:
+      - component-tests
