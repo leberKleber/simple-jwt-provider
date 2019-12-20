@@ -14,16 +14,16 @@ type Storage struct {
 	db *sql.DB
 }
 
-func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (Storage, error) {
+func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (*Storage, error) {
 	db, err := sql.Open(
 		"postgres",
 		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable connect_timeout=30", dbHost, dbPort, dbUsername, dbPassword, dbName),
 	)
 	if err != nil {
-		return Storage{}, fmt.Errorf("failed to open database connection: %w", err)
+		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
-	return Storage{
+	return &Storage{
 		db: db,
 	}, nil
 }

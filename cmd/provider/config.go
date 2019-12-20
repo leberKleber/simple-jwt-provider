@@ -10,6 +10,7 @@ type config struct {
 	DatabaseUsername           string `arg:"--database-username,env:DATABASE_USERNAME,help:Database-Username"`
 	DatabasePassword           string `arg:"--database-password,env:DATABASE_PASSWORD,help:Database-Password"`
 	DatabaseMigrationsFilePath string `arg:"--database-migrations-file-path,env:DATABASE_MIGRATIONS_FILE_PATH,required,help:Database Migrations File Path"`
+	JWTPrivateKey              string `arg:"--jwt-private-key,env:JWT_PRIVATE_KEY,help:JWT PrivateKey ECDSA512,required"`
 }
 
 func newConfig() (config, error) {

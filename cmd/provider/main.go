@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/leberKleber/simple-jwt-provider/internal"
+	"github.com/leberKleber/simple-jwt-provider/internal/jwt"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"github.com/leberKleber/simple-jwt-provider/internal/web"
 	"github.com/sirupsen/logrus"
@@ -22,8 +24,13 @@ func main() {
 		logrus.WithError(err).Fatal("Could not migrate database")
 	}
 
+	jwtGenerator := jwt.Generator{PrivateKey: cfg.JWTPrivateKey}
+	provider := &internal.Provider{Storage: s, JWTGenerator: &jwtGenerator}
+	server := web.NewServer(provider)
+
 	logrus.WithField("config", cfg).Info("Start provider")
-	if err := web.Serve(cfg.ServerAddress); err != nil {
+
+	if err := server.ListenAndServe(cfg.ServerAddress); err != nil {
 		logrus.WithError(err).Fatal("Failed to run server")
 	}
 }
