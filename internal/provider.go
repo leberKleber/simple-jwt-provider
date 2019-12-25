@@ -6,10 +6,11 @@ import (
 
 type Storage interface {
 	User(email string) (storage.User, error)
+	CreateUser(user storage.User) error
 }
 
 type JWTGenerator interface {
-	Generate(email string) string
+	Generate(email string) (string, error)
 }
 
 type Provider struct {

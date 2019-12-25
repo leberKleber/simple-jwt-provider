@@ -9,6 +9,7 @@ import (
 
 type Provider interface {
 	Login(email, password string) (string, error)
+	CreateUser(email, password string) error
 }
 
 type Server struct {
@@ -21,11 +22,10 @@ func NewServer(p Provider) *Server {
 
 	r := mux.NewRouter()
 
-	v1 := r.PathPrefix("/v1")
+	v1 := r.PathPrefix("/v1").Subrouter()
 	v1.Path("/internal/alive").Methods(http.MethodGet).HandlerFunc(s.aliveHandler)
-
-	v1Auth := r.PathPrefix("/auth")
-	v1Auth.Path("/login").Methods(http.MethodPost).HandlerFunc(s.loginHandler)
+	v1.Path("/auth/login").Methods(http.MethodPost).HandlerFunc(s.loginHandler)
+	v1.Path("/admin/users").Methods(http.MethodPost).HandlerFunc(s.createUserHandler)
 
 	s.h = r
 	s.p = p

@@ -24,8 +24,12 @@ func main() {
 		logrus.WithError(err).Fatal("Could not migrate database")
 	}
 
-	jwtGenerator := jwt.Generator{PrivateKey: cfg.JWTPrivateKey}
-	provider := &internal.Provider{Storage: s, JWTGenerator: &jwtGenerator}
+	jwtGenerator, err := jwt.NewGenerator(cfg.JWTPrivateKey)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to create jwt generator")
+	}
+
+	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator}
 	server := web.NewServer(provider)
 
 	logrus.WithField("config", cfg).Info("Start provider")

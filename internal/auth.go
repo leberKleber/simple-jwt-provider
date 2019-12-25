@@ -29,5 +29,5 @@ func (p *Provider) Login(email, password string) (string, error) {
 		return "", ErrIncorrectPassword
 	}
 
-	return p.JWTGenerator.Generate(email), nil
+	return p.JWTGenerator.Generate(email)
 }
