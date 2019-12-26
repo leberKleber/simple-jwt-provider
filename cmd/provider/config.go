@@ -11,13 +11,15 @@ type config struct {
 	DatabasePassword           string `arg:"--database-password,env:DATABASE_PASSWORD,help:Database-Password"`
 	DatabaseMigrationsFilePath string `arg:"--database-migrations-file-path,env:DATABASE_MIGRATIONS_FILE_PATH,required,help:Database Migrations File Path"`
 	JWTPrivateKey              string `arg:"--jwt-private-key,env:JWT_PRIVATE_KEY,help:JWT PrivateKey ECDSA512,required"`
+	EnableAdminAPI             bool   `arg:"--enable-admin-api,env:ENABLE_ADMIN_API,help:Enable admin API to manage stored users (true / false) default: 'true'"`
 }
 
 func newConfig() (config, error) {
 	cfg := config{
-		ServerAddress: ":80",
-		DatabasePort:  5432,
-		DatabaseName:  "simple-auth-provider",
+		ServerAddress:  ":80",
+		DatabasePort:   5432,
+		DatabaseName:   "simple-auth-provider",
+		EnableAdminAPI: false,
 	}
 	err := arg.Parse(&cfg)
 

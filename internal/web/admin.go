@@ -41,4 +41,6 @@ func (s *Server) createUserHandler(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
 }

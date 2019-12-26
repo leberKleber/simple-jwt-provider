@@ -30,7 +30,7 @@ func main() {
 	}
 
 	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator}
-	server := web.NewServer(provider)
+	server := web.NewServer(provider, cfg.EnableAdminAPI)
 
 	logrus.WithField("config", cfg).Info("Start provider")
 

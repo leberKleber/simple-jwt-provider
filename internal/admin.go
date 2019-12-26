@@ -7,12 +7,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var bcryptCost = 10
+var bcryptCost = 12
 var ErrUserAlreadyExists = fmt.Errorf("user already exists")
 
 /**
 Creates new user with given email and password
-return ErrUserAllreadyExists when user already exists
+return ErrUserAlreadyExists when user already exists
 */
 func (p *Provider) CreateUser(email, password string) error {
 	securedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)

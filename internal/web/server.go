@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+//go:generate moq -out provider_moq_test.go . Provider
 type Provider interface {
 	Login(email, password string) (string, error)
 	CreateUser(email, password string) error
@@ -17,7 +18,7 @@ type Server struct {
 	p Provider
 }
 
-func NewServer(p Provider) *Server {
+func NewServer(p Provider, enableAdminAPI bool) *Server {
 	s := &Server{}
 
 	r := mux.NewRouter()
@@ -25,7 +26,10 @@ func NewServer(p Provider) *Server {
 	v1 := r.PathPrefix("/v1").Subrouter()
 	v1.Path("/internal/alive").Methods(http.MethodGet).HandlerFunc(s.aliveHandler)
 	v1.Path("/auth/login").Methods(http.MethodPost).HandlerFunc(s.loginHandler)
-	v1.Path("/admin/users").Methods(http.MethodPost).HandlerFunc(s.createUserHandler)
+
+	if enableAdminAPI {
+		v1.Path("/admin/users").Methods(http.MethodPost).HandlerFunc(s.createUserHandler)
+	}
 
 	s.h = r
 	s.p = p
