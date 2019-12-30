@@ -1,2 +1,2 @@
 # TODOs
-- fill other standard claim @ jwt/factory.go
+- fill other standard claim @ jwt/Generator

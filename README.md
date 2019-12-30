@@ -11,10 +11,10 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 ```
 
 ## API
-### POST `/auth/login`
+### POST `/v1/auth/login`
+This endpoint will check the email/password combination and will set the respond with an jwtauthToken if correct:
 
-Expect a JSON object:
-
+Request body:
 ```json
 {
     "email": "info@leberkleber.io",
@@ -22,10 +22,22 @@ Expect a JSON object:
 }
 ```
 
-This endpoint will check the email/password combination and will set the respond with an jwtauthToken if correct:
-
+Response body (200 - OK):
 ```json
 {
     "access_token":"<jwt>"
 }
 ```
+
+### POST `/v1/admin/users`
+This endpoint will create an new user if admin api auth was successfully:
+
+Request body:
+```json
+{
+    "email": "info@leberkleber.io",
+    "password": "s3cr3t"
+}
+```
+
+Response body (201 - CREATED)

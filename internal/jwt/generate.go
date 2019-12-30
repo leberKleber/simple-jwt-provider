@@ -24,7 +24,7 @@ type claims struct {
 }
 
 func NewGenerator(key string) (*Generator, error) {
-	key = strings.Replace(key, `\n`, "\n", -1) //TODO fix me
+	key = strings.Replace(key, `\n`, "\n", -1) //TODO fix me (needed for start via ide)
 
 	blockPrv, _ := pem.Decode([]byte(key))
 	if blockPrv == nil {
