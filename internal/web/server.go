@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/leberKleber/simple-jwt-provider/internal/web/middleware"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -18,17 +19,19 @@ type Server struct {
 	p Provider
 }
 
-func NewServer(p Provider, enableAdminAPI bool) *Server {
+func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPassword string) *Server {
 	s := &Server{}
 
 	r := mux.NewRouter()
-
 	v1 := r.PathPrefix("/v1").Subrouter()
 	v1.Path("/internal/alive").Methods(http.MethodGet).HandlerFunc(s.aliveHandler)
 	v1.Path("/auth/login").Methods(http.MethodPost).HandlerFunc(s.loginHandler)
 
 	if enableAdminAPI {
-		v1.Path("/admin/users").Methods(http.MethodPost).HandlerFunc(s.createUserHandler)
+		adminAPI := v1.PathPrefix("/admin").Subrouter()
+		adminAPI.Use(middleware.BasicAuth(adminAPIUsername, adminAPIPassword))
+
+		adminAPI.Path("/users").Methods(http.MethodPost).HandlerFunc(s.createUserHandler)
 	}
 
 	s.h = r

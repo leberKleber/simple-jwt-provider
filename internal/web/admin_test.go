@@ -61,11 +61,17 @@ func TestCreateUserHandler(t *testing.T) {
 
 					return tt.providerError
 				},
-			}, true)
+			}, true, "username", "password")
 			testServer := httptest.NewServer(toTest.h)
 
 			bb := bytes.NewReader([]byte(tt.requestBody))
-			resp, err := http.Post(testServer.URL+"/v1/admin/users", "application/json", bb)
+			req, err := http.NewRequest(http.MethodPost, testServer.URL+"/v1/admin/users", bb)
+			if err != nil {
+				t.Fatalf("Failed to build http request: %s", err)
+			}
+			req.SetBasicAuth("username", "password")
+
+			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				t.Fatalf("Failed to call server cause: %s", err)
 			}
