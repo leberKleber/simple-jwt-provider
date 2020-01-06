@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/leberKleber/simple-jwt-provider/internal"
 	"github.com/leberKleber/simple-jwt-provider/internal/jwt"
+	"github.com/leberKleber/simple-jwt-provider/internal/mailer"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"github.com/leberKleber/simple-jwt-provider/internal/web"
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,8 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to create jwt generator")
 	}
 
-	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator}
+	mailer := mailer.New(cfg.MailFromAddress, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost, cfg.SMTPPort)
+	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: mailer}
 	server := web.NewServer(provider, cfg.EnableAdminAPI, cfg.AdminAPIUsername, cfg.AdminAPIPassword)
 
 	logrus.WithField("config", cfg).Info("Start provider")

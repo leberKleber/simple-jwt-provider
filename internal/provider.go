@@ -15,7 +15,13 @@ type JWTGenerator interface {
 	Generate(email string) (string, error)
 }
 
+//go:generate moq -out mailer_moq_test.go . JWTGenerator
+type Mailer interface {
+	SendPasswordResetMail(recipient, passwordResetLink string) error
+}
+
 type Provider struct {
 	Storage      Storage
 	JWTGenerator JWTGenerator
+	Mailer       Mailer
 }
