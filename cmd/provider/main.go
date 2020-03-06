@@ -30,8 +30,12 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to create jwt generator")
 	}
 
-	mailer := mailer.New(cfg.MailFromAddress, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost, cfg.SMTPPort)
-	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: mailer}
+	m, err := mailer.New(cfg.MailFromAddress, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost, cfg.SMTPPort)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to create mailer")
+	}
+
+	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: m}
 	server := web.NewServer(provider, cfg.EnableAdminAPI, cfg.AdminAPIUsername, cfg.AdminAPIPassword)
 
 	logrus.WithField("config", cfg).Info("Start provider")

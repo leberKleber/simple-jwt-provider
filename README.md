@@ -1,4 +1,4 @@
-# simple-jwt-auth
+# simple-jwt-provider
 
 ## Getting started
 ### Generate ECDSA-512 key pair
@@ -29,9 +29,9 @@ Response body (200 - OK):
 }
 ```
 
-### POST `/v1/auth/change-password-request`
-This endpoint will trigger a password change request. The user gets a token per mail.
-With this token, the password can be reset via POST@`/v1/auth/change-password` .
+### POST `/v1/auth/password-reset-request`
+This endpoint will trigger a password reset request. The user gets a token per mail.
+With this token, the password can be reset via POST@`/v1/auth/password-reset` .
 
 Request body:
 ```json
@@ -42,14 +42,14 @@ Request body:
 
 Response body (201 - CREATED)
 
-### POST `/v1/auth/change-password`
-This endpoint will change the password of the given user if the change-token is valid and matches to the given email.
+### POST `/v1/auth/password-reset`
+This endpoint will reset the password of the given user if the reset-token is valid and matches to the given email.
 
 Request body:
 ```json
 {
     "email": "info@leberkleber.io",
-    "change_token": "rAnDoMsHiT456",
+    "reset_token": "rAnDoMsHiT456",
     "password": "SeCReT"
 }
 ```

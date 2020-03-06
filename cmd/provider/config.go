@@ -16,7 +16,7 @@ type config struct {
 type db struct {
 	DatabaseHost               string `arg:"--database-host,env:DATABASE_HOST,help:Database-Host"`
 	DatabasePort               int    `arg:"--database-port,env:DATABASE_PORT,help:Database-Port default: '5432'"`
-	DatabaseName               string `arg:"--database-name,env:DATABASE_NAME,help:Database-Name default: 'simple-auth-provider'"`
+	DatabaseName               string `arg:"--database-name,env:DATABASE_NAME,help:Database-name default: 'simple-auth-provider'"`
 	DatabaseUsername           string `arg:"--database-username,env:DATABASE_USERNAME,help:Database-Username"`
 	DatabasePassword           string `arg:"--database-password,env:DATABASE_PASSWORD,help:Database-Password"`
 	DatabaseMigrationsFilePath string `arg:"--database-migrations-file-path,env:DATABASE_MIGRATIONS_FILE_PATH,required,help:Database Migrations File Path"`
