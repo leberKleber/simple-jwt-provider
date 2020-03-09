@@ -29,6 +29,34 @@ Response body (200 - OK):
 }
 ```
 
+### POST `/v1/auth/password-reset-request`
+This endpoint will trigger a password reset request. The user gets a token per mail.
+With this token, the password can be reset via POST@`/v1/auth/password-reset` .
+
+Request body:
+```json
+{
+    "email": "info@leberkleber.io"
+}
+```
+
+Response (201 - CREATED)
+
+### POST `/v1/auth/password-reset`
+This endpoint will reset the password of the given user if the reset-token is valid and matches to the given email.
+
+Request body:
+```json
+{
+    "email": "info@leberkleber.io",
+    "reset_token": "rAnDoMsHiT456",
+    "password": "SeCReT"
+}
+```
+
+Response (200 - OK)
+
+
 ### POST `/v1/admin/users`
 This endpoint will create an new user if admin api auth was successfully:
 
