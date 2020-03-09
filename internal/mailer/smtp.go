@@ -15,7 +15,7 @@ func New(templateFolderPath, username, password, host string, port int) (*Mailer
 	d := gomail.NewDialer(host, port, username, password)
 	d.Auth = &loginAuth{username: username, password: password}
 
-	pwRestTmpl, err := Load(templateFolderPath, PasswordResetTemplateName)
+	pwRestTmpl, err := Load(templateFolderPath, PasswordResetRequestTemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load password-reset tempate: %w", err)
 	}
@@ -23,7 +23,7 @@ func New(templateFolderPath, username, password, host string, port int) (*Mailer
 	return &Mailer{
 		dialer: d,
 		templates: map[string]Template{
-			PasswordResetTemplateName: pwRestTmpl,
+			PasswordResetRequestTemplateName: pwRestTmpl,
 		},
 	}, nil
 }
@@ -37,7 +37,7 @@ func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetLink stri
 		PasswordResetLink: passwordResetLink,
 	}
 
-	msg, err := m.templates[PasswordResetTemplateName].Render(mailData)
+	msg, err := m.templates[PasswordResetRequestTemplateName].Render(mailData)
 	if err != nil {
 		return fmt.Errorf("failed to render mail template: %w", err)
 	}

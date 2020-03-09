@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/ardanlabs/conf"
 	"github.com/leberKleber/simple-jwt-provider/internal"
 	"github.com/leberKleber/simple-jwt-provider/internal/jwt"
 	"github.com/leberKleber/simple-jwt-provider/internal/mailer"
@@ -15,12 +17,19 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to parse config")
 	}
 
-	s, err := storage.New(cfg.DatabaseHost, cfg.DatabasePort, cfg.DatabaseUsername, cfg.DatabasePassword, cfg.DatabaseName)
+	cfgAsString, err := conf.String(&cfg)
+	if err != nil {
+		logrus.WithError(err).Fatal("Could not build config string")
+	}
+	fmt.Print(cfgAsString)
+	logrus.Infof("Starting provider")
+
+	s, err := storage.New(cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Name)
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not create storage")
 	}
 
-	err = s.Migrate(cfg.DatabaseMigrationsFilePath)
+	err = s.Migrate(cfg.DB.MigrationsFolderPath)
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not migrate database")
 	}
@@ -30,15 +39,13 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to create jwt generator")
 	}
 
-	m, err := mailer.New(cfg.MailFromAddress, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost, cfg.SMTPPort)
+	m, err := mailer.New(cfg.Mail.TemplateFolderPath, cfg.Mail.SMTPUsername, cfg.Mail.SMTPPassword, cfg.Mail.SMTPHost, cfg.Mail.SMTPPort)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to create mailer")
 	}
 
 	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: m}
-	server := web.NewServer(provider, cfg.EnableAdminAPI, cfg.AdminAPIUsername, cfg.AdminAPIPassword)
-
-	logrus.WithField("config", cfg).Info("Start provider")
+	server := web.NewServer(provider, cfg.AdminAPI.Enable, cfg.AdminAPI.Username, cfg.AdminAPI.Password)
 
 	if err := server.ListenAndServe(cfg.ServerAddress); err != nil {
 		logrus.WithError(err).Fatal("Failed to run server")

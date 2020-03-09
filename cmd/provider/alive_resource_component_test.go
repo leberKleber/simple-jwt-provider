@@ -9,9 +9,9 @@ import (
 )
 
 func TestAliveResource(t *testing.T) {
-	res, err := http.Get("http://simple-auth-provider/v1/internal/alive")
+	res, err := http.Get("http://simple-jwt-provider/v1/internal/alive")
 	if err != nil {
-		t.Fatalf("Failed to call simple-auth-provider: %s", err)
+		t.Fatalf("Failed to call simple-jwt-provider: %s", err)
 	}
 	defer res.Body.Close()
 

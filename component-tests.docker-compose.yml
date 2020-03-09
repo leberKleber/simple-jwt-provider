@@ -5,21 +5,21 @@ networks:
     name: component-tests-${BUILD_ID}
 
 services:
-  simple-auth-provider:
+  simple-jwt-provider:
     build:
       context: .
     restart: on-failure
     environment:
-      DATABASE_HOST: "db"
-      DATABASE_PORT: 5432
-      DATABASE_NAME: "simple-auth-provider"
-      DATABASE_USERNAME: "postgres"
-      DATABASE_PASSWORD: "postgres"
-      DATABASE_MIGRATIONS_FILE_PATH: "/db-migrations"
-      ENABLE_ADMIN_API: "true"
-      ADMIN_API_USERNAME: "username"
-      ADMIN_API_PASSWORD: "password"
-      JWT_PRIVATE_KEY: "\n-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIASzDZeTVLxcE5KTAmwrKwFjzr5cDrA+tttx9XRUz0K7AlROtj7cMG\nrHu/bdKj7lc2WaW8x/EOrU/FeCcsIL5nTH+gBwYFK4EEACOhgYkDgYYABAFBJr90\nWldGrPppBCbHqw2nGXeafxnSj6qB+A7E8A/G74mmmwIaqtf/pJ5QjqTPcAVUAEYF\nTz/0SPO3tPL1Ym3V0QH7TfnTf7EueabJqPdsSGR6uvbb2YOA9vy4OU8SXp/9a/4x\nr94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==\n-----END EC PRIVATE KEY-----"
+      SJP_DB_HOST: "db"
+      SJP_DB_PORT: 5432
+      SJP_DB_NAME: "simple-jwt-provider"
+      SJP_DB_USERNAME: "postgres"
+      SJP_DB_PASSWORD: "postgres"
+      SJP_DB_MIGRATIONS_FOLDER_PATH: "/db-migrations"
+      SJP_ADMIN_API_ENABLE: "true"
+      SJP_ADMIN_API_USERNAME: "username"
+      SJP_ADMIN_API_PASSWORD: "password"
+      SJP_JWT_PRIVATE_KEY: "\n-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIASzDZeTVLxcE5KTAmwrKwFjzr5cDrA+tttx9XRUz0K7AlROtj7cMG\nrHu/bdKj7lc2WaW8x/EOrU/FeCcsIL5nTH+gBwYFK4EEACOhgYkDgYYABAFBJr90\nWldGrPppBCbHqw2nGXeafxnSj6qB+A7E8A/G74mmmwIaqtf/pJ5QjqTPcAVUAEYF\nTz/0SPO3tPL1Ym3V0QH7TfnTf7EueabJqPdsSGR6uvbb2YOA9vy4OU8SXp/9a/4x\nr94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==\n-----END EC PRIVATE KEY-----"
     networks:
       - component-tests
 
@@ -27,7 +27,7 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_DB: "simple-auth-provider"
+      POSTGRES_DB: "simple-jwt-provider"
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
     networks:

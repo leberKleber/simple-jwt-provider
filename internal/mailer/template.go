@@ -10,7 +10,7 @@ import (
 )
 import textTemplate "text/template"
 
-var PasswordResetTemplateName = "password-reset"
+var PasswordResetRequestTemplateName = "password-reset-request"
 
 type Template struct {
 	name       string

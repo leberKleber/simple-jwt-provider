@@ -13,19 +13,19 @@ COPY go.sum .
 RUN go mod download
 
 COPY . .
-RUN go build -ldflags -s -a -o simple-jwt-provider -installsuffix cgo ./cmd/provider/
+RUN go build -ldflags -s -a -o simple-jwt-provider ./cmd/provider/
 
 # Service definition
 FROM alpine
 
-RUN apk add --update libcap tzdata ca-certificates && rm -rf /var/cache/apk/*
+RUN apk add --update libcap tzdata && rm -rf /var/cache/apk/*
 
 COPY --from=build /src/simple-jwt-provider/simple-jwt-provider /simple-jwt-provider
 
 COPY db-migrations /db-migrations
+COPY mail-templates /mail-templates
 
 RUN setcap CAP_NET_BIND_SERVICE=+eip /simple-jwt-provider
-RUN update-ca-certificates
 
 RUN addgroup -g 1000 -S runnergroup && adduser -u 1001 -S apprunner -G runnergroup
 USER apprunner

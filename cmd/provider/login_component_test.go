@@ -71,7 +71,7 @@ func decodeECDSApubKey(pemEncodedPub string) (*ecdsa.PublicKey, error) {
 
 func createUser(t *testing.T, email, password string) {
 	t.Helper()
-	req, err := http.NewRequest(http.MethodPost, "http://simple-auth-provider/v1/admin/users", bytes.NewReader([]byte(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))))
+	req, err := http.NewRequest(http.MethodPost, "http://simple-jwt-provider/v1/admin/users", bytes.NewReader([]byte(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))))
 	if err != nil {
 		t.Fatalf("Failed to create http request")
 	}
@@ -95,7 +95,7 @@ func createUser(t *testing.T, email, password string) {
 
 func loginUser(t *testing.T, email, password string) string {
 	resp, err := http.Post(
-		"http://simple-auth-provider/v1/auth/login",
+		"http://simple-jwt-provider/v1/auth/login",
 		"application/json",
 		bytes.NewReader([]byte(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))),
 	)
