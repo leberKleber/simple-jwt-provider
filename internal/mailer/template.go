@@ -3,12 +3,12 @@ package mailer
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/gomail.v2"
+	"gopkg.in/mail.v2"
 	"gopkg.in/yaml.v2"
 	htmlTemplate "html/template"
 	"path/filepath"
+	textTemplate "text/template"
 )
-import textTemplate "text/template"
 
 var PasswordResetRequestTemplateName = "password-reset-request"
 
@@ -20,19 +20,19 @@ type Template struct {
 }
 
 func Load(path, name string) (Template, error) {
-	htmlTmpl, err := htmlTemplate.New(name + "-html").ParseFiles(
+	htmlTmpl, err := htmlTemplate.ParseFiles(
 		filepath.Join(path, fmt.Sprintf("%s.html", name)),
 	)
 	if err != nil {
 		return Template{}, fmt.Errorf("failed to load html template: %w", err)
 	}
-	textTmpl, err := textTemplate.New(name + "-text").ParseFiles(
+	textTmpl, err := textTemplate.ParseFiles(
 		filepath.Join(path, fmt.Sprintf("%s.txt", name)),
 	)
 	if err != nil {
 		return Template{}, fmt.Errorf("failed to load txt template: %w", err)
 	}
-	headerTmpl, err := textTemplate.New(name + "-header").ParseFiles(
+	headerTmpl, err := textTemplate.ParseFiles(
 		filepath.Join(path, fmt.Sprintf("%s.yml", name)),
 	)
 	if err != nil {
@@ -47,8 +47,8 @@ func Load(path, name string) (Template, error) {
 	}, nil
 }
 
-func (t Template) Render(args interface{}) (*gomail.Message, error) {
-	msg := gomail.NewMessage()
+func (t Template) Render(args interface{}) (*mail.Message, error) {
+	msg := mail.NewMessage()
 
 	err := renderHeaders(msg, t.headerTmpl, args)
 	if err != nil {
@@ -69,18 +69,18 @@ func (t Template) Render(args interface{}) (*gomail.Message, error) {
 	}
 	msg.AddAlternative("text/html", buf.String())
 
-	return nil, nil
+	return msg, nil
 }
 
-func renderHeaders(msg *gomail.Message, template *textTemplate.Template, args interface{}) error {
-	var buf *bytes.Buffer
-	err := template.Execute(buf, args)
+func renderHeaders(msg *mail.Message, template *textTemplate.Template, args interface{}) error {
+	var buf bytes.Buffer
+	err := template.Execute(&buf, args)
 	if err != nil {
 		return err
 	}
 
 	headers := make(map[string][]string)
-	err = yaml.NewDecoder(buf).Decode(&headers)
+	err = yaml.NewDecoder(&buf).Decode(&headers)
 	if err != nil {
 		return err
 	}

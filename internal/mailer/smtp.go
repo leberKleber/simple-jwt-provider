@@ -1,21 +1,28 @@
 package mailer
 
 import (
+	"crypto/tls"
 	"fmt"
-	"gopkg.in/gomail.v2"
-	"net/smtp"
+	"gopkg.in/mail.v2"
 )
 
 type Mailer struct {
-	dialer    *gomail.Dialer
+	dialer    *mail.Dialer
 	templates map[string]Template
 }
 
-func New(templateFolderPath, username, password, host string, port int) (*Mailer, error) {
-	d := gomail.NewDialer(host, port, username, password)
-	d.Auth = &loginAuth{username: username, password: password}
+func New(templatesFolderPath, username, password, host string, port int, tlsInsecureSkipVerify bool, tlsServerName string) (*Mailer, error) {
+	d := mail.NewDialer(host, port, username, password)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: tlsInsecureSkipVerify, ServerName: tlsServerName}
 
-	pwRestTmpl, err := Load(templateFolderPath, PasswordResetRequestTemplateName)
+	//check connection and auth
+	rd, err := d.Dial()
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to smtp server: %w", err)
+	}
+	defer rd.Close()
+
+	pwRestTmpl, err := Load(templatesFolderPath, PasswordResetRequestTemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load password-reset tempate: %w", err)
 	}
@@ -28,45 +35,24 @@ func New(templateFolderPath, username, password, host string, port int) (*Mailer
 	}, nil
 }
 
-func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetLink string) error {
+func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetURL string) error {
 	mailData := struct {
-		EMail             string
-		PasswordResetLink string
+		EMail            string
+		PasswordResetURL string
 	}{
-		EMail:             recipient,
-		PasswordResetLink: passwordResetLink,
+		EMail:            recipient,
+		PasswordResetURL: passwordResetURL,
 	}
 
 	msg, err := m.templates[PasswordResetRequestTemplateName].Render(mailData)
 	if err != nil {
 		return fmt.Errorf("failed to render mail template: %w", err)
 	}
+
 	err = m.dialer.DialAndSend(msg)
 	if err != nil {
 		return fmt.Errorf("failed to send email: %s", err)
 	}
 
 	return nil
-}
-
-type loginAuth struct {
-	username, password string
-}
-
-func (a *loginAuth) Start(_ *smtp.ServerInfo) (string, []byte, error) {
-	return "LOGIN", []byte(a.username), nil
-}
-
-func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
-	if more {
-		switch string(fromServer) {
-		case "Username:":
-			return []byte(a.username), nil
-		case "Password:":
-			return []byte(a.password), nil
-		default:
-			return nil, fmt.Errorf("unknown response (%s) from server when attempting to use loginAuth", string(fromServer))
-		}
-	}
-	return nil, nil
 }
