@@ -51,3 +51,25 @@ func (s *Storage) CreateUser(u User) error {
 
 	return nil
 }
+
+func (s *Storage) UpdateUser(u User) error {
+	stmt, err := s.db.Prepare("UPDATE users SET password = $2 WHERE email = $1;")
+	if err != nil {
+		return fmt.Errorf("failed to prepare stmt: %w", err)
+	}
+
+	res, err := stmt.Exec(u.EMail, u.Password)
+	if err != nil {
+		return fmt.Errorf("failed to exec stmt: %w", err)
+	}
+
+	r, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get count of affected rows")
+	}
+	if r == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}

@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	lockProviderMockCreateUser sync.RWMutex
-	lockProviderMockLogin      sync.RWMutex
+	lockProviderMockCreatePasswordResetRequest sync.RWMutex
+	lockProviderMockCreateUser                 sync.RWMutex
+	lockProviderMockLogin                      sync.RWMutex
 )
 
 // Ensure, that ProviderMock does implement Provider.
@@ -22,6 +23,9 @@ var _ Provider = &ProviderMock{}
 //
 //         // make and configure a mocked Provider
 //         mockedProvider := &ProviderMock{
+//             CreatePasswordResetRequestFunc: func(email string) error {
+// 	               panic("mock out the CreatePasswordResetRequest method")
+//             },
 //             CreateUserFunc: func(email string, password string) error {
 // 	               panic("mock out the CreateUser method")
 //             },
@@ -35,6 +39,9 @@ var _ Provider = &ProviderMock{}
 //
 //     }
 type ProviderMock struct {
+	// CreatePasswordResetRequestFunc mocks the CreatePasswordResetRequest method.
+	CreatePasswordResetRequestFunc func(email string) error
+
 	// CreateUserFunc mocks the CreateUser method.
 	CreateUserFunc func(email string, password string) error
 
@@ -43,6 +50,11 @@ type ProviderMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// CreatePasswordResetRequest holds details about calls to the CreatePasswordResetRequest method.
+		CreatePasswordResetRequest []struct {
+			// Email is the email argument value.
+			Email string
+		}
 		// CreateUser holds details about calls to the CreateUser method.
 		CreateUser []struct {
 			// Email is the email argument value.
@@ -58,6 +70,37 @@ type ProviderMock struct {
 			Password string
 		}
 	}
+}
+
+// CreatePasswordResetRequest calls CreatePasswordResetRequestFunc.
+func (mock *ProviderMock) CreatePasswordResetRequest(email string) error {
+	if mock.CreatePasswordResetRequestFunc == nil {
+		panic("ProviderMock.CreatePasswordResetRequestFunc: method is nil but Provider.CreatePasswordResetRequest was just called")
+	}
+	callInfo := struct {
+		Email string
+	}{
+		Email: email,
+	}
+	lockProviderMockCreatePasswordResetRequest.Lock()
+	mock.calls.CreatePasswordResetRequest = append(mock.calls.CreatePasswordResetRequest, callInfo)
+	lockProviderMockCreatePasswordResetRequest.Unlock()
+	return mock.CreatePasswordResetRequestFunc(email)
+}
+
+// CreatePasswordResetRequestCalls gets all the calls that were made to CreatePasswordResetRequest.
+// Check the length with:
+//     len(mockedProvider.CreatePasswordResetRequestCalls())
+func (mock *ProviderMock) CreatePasswordResetRequestCalls() []struct {
+	Email string
+} {
+	var calls []struct {
+		Email string
+	}
+	lockProviderMockCreatePasswordResetRequest.RLock()
+	calls = mock.calls.CreatePasswordResetRequest
+	lockProviderMockCreatePasswordResetRequest.RUnlock()
+	return calls
 }
 
 // CreateUser calls CreateUserFunc.

@@ -9,8 +9,10 @@ import (
 )
 
 var (
-	lockStorageMockCreateUser sync.RWMutex
-	lockStorageMockUser       sync.RWMutex
+	lockStorageMockCreateToken sync.RWMutex
+	lockStorageMockCreateUser  sync.RWMutex
+	lockStorageMockUpdateUser  sync.RWMutex
+	lockStorageMockUser        sync.RWMutex
 )
 
 // Ensure, that StorageMock does implement Storage.
@@ -23,8 +25,14 @@ var _ Storage = &StorageMock{}
 //
 //         // make and configure a mocked Storage
 //         mockedStorage := &StorageMock{
+//             CreateTokenFunc: func(t storage.Token) (int64, error) {
+// 	               panic("mock out the CreateToken method")
+//             },
 //             CreateUserFunc: func(user storage.User) error {
 // 	               panic("mock out the CreateUser method")
+//             },
+//             UpdateUserFunc: func(user storage.User) error {
+// 	               panic("mock out the UpdateUser method")
 //             },
 //             UserFunc: func(email string) (storage.User, error) {
 // 	               panic("mock out the User method")
@@ -36,16 +44,32 @@ var _ Storage = &StorageMock{}
 //
 //     }
 type StorageMock struct {
+	// CreateTokenFunc mocks the CreateToken method.
+	CreateTokenFunc func(t storage.Token) (int64, error)
+
 	// CreateUserFunc mocks the CreateUser method.
 	CreateUserFunc func(user storage.User) error
+
+	// UpdateUserFunc mocks the UpdateUser method.
+	UpdateUserFunc func(user storage.User) error
 
 	// UserFunc mocks the User method.
 	UserFunc func(email string) (storage.User, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// CreateToken holds details about calls to the CreateToken method.
+		CreateToken []struct {
+			// T is the t argument value.
+			T storage.Token
+		}
 		// CreateUser holds details about calls to the CreateUser method.
 		CreateUser []struct {
+			// User is the user argument value.
+			User storage.User
+		}
+		// UpdateUser holds details about calls to the UpdateUser method.
+		UpdateUser []struct {
 			// User is the user argument value.
 			User storage.User
 		}
@@ -55,6 +79,37 @@ type StorageMock struct {
 			Email string
 		}
 	}
+}
+
+// CreateToken calls CreateTokenFunc.
+func (mock *StorageMock) CreateToken(t storage.Token) (int64, error) {
+	if mock.CreateTokenFunc == nil {
+		panic("StorageMock.CreateTokenFunc: method is nil but Storage.CreateToken was just called")
+	}
+	callInfo := struct {
+		T storage.Token
+	}{
+		T: t,
+	}
+	lockStorageMockCreateToken.Lock()
+	mock.calls.CreateToken = append(mock.calls.CreateToken, callInfo)
+	lockStorageMockCreateToken.Unlock()
+	return mock.CreateTokenFunc(t)
+}
+
+// CreateTokenCalls gets all the calls that were made to CreateToken.
+// Check the length with:
+//     len(mockedStorage.CreateTokenCalls())
+func (mock *StorageMock) CreateTokenCalls() []struct {
+	T storage.Token
+} {
+	var calls []struct {
+		T storage.Token
+	}
+	lockStorageMockCreateToken.RLock()
+	calls = mock.calls.CreateToken
+	lockStorageMockCreateToken.RUnlock()
+	return calls
 }
 
 // CreateUser calls CreateUserFunc.
@@ -85,6 +140,37 @@ func (mock *StorageMock) CreateUserCalls() []struct {
 	lockStorageMockCreateUser.RLock()
 	calls = mock.calls.CreateUser
 	lockStorageMockCreateUser.RUnlock()
+	return calls
+}
+
+// UpdateUser calls UpdateUserFunc.
+func (mock *StorageMock) UpdateUser(user storage.User) error {
+	if mock.UpdateUserFunc == nil {
+		panic("StorageMock.UpdateUserFunc: method is nil but Storage.UpdateUser was just called")
+	}
+	callInfo := struct {
+		User storage.User
+	}{
+		User: user,
+	}
+	lockStorageMockUpdateUser.Lock()
+	mock.calls.UpdateUser = append(mock.calls.UpdateUser, callInfo)
+	lockStorageMockUpdateUser.Unlock()
+	return mock.UpdateUserFunc(user)
+}
+
+// UpdateUserCalls gets all the calls that were made to UpdateUser.
+// Check the length with:
+//     len(mockedStorage.UpdateUserCalls())
+func (mock *StorageMock) UpdateUserCalls() []struct {
+	User storage.User
+} {
+	var calls []struct {
+		User storage.User
+	}
+	lockStorageMockUpdateUser.RLock()
+	calls = mock.calls.UpdateUser
+	lockStorageMockUpdateUser.RUnlock()
 	return calls
 }
 
