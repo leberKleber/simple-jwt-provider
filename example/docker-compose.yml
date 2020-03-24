@@ -34,3 +34,5 @@ services:
   smtp:
     image: mailhog/mailhog
     restart: always
+    ports:
+      - "8025:8025"
