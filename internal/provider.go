@@ -10,6 +10,8 @@ type Storage interface {
 	CreateUser(user storage.User) error
 	UpdateUser(user storage.User) error
 	CreateToken(t storage.Token) (int64, error)
+	TokensByEMailAndToken(email, token string) ([]storage.Token, error)
+	DeleteToken(id int64) error
 }
 
 //go:generate moq -out jwt_generator_moq_test.go . JWTGenerator
@@ -26,5 +28,5 @@ type Provider struct {
 	Storage             Storage
 	JWTGenerator        JWTGenerator
 	Mailer              Mailer
-	PasswordResetURLFmt string
+	PasswordResetURLFMT string
 }
