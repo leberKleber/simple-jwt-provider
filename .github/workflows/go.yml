@@ -28,3 +28,6 @@ jobs:
 
     - name: Build
       run: go test -v ./...
+
+    - name: Component-Tests
+      run: ./component-tests.sh

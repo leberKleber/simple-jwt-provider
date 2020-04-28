@@ -9,10 +9,12 @@ import (
 )
 
 var (
-	lockStorageMockCreateToken sync.RWMutex
-	lockStorageMockCreateUser  sync.RWMutex
-	lockStorageMockUpdateUser  sync.RWMutex
-	lockStorageMockUser        sync.RWMutex
+	lockStorageMockCreateToken           sync.RWMutex
+	lockStorageMockCreateUser            sync.RWMutex
+	lockStorageMockDeleteToken           sync.RWMutex
+	lockStorageMockTokensByEMailAndToken sync.RWMutex
+	lockStorageMockUpdateUser            sync.RWMutex
+	lockStorageMockUser                  sync.RWMutex
 )
 
 // Ensure, that StorageMock does implement Storage.
@@ -30,6 +32,12 @@ var _ Storage = &StorageMock{}
 //             },
 //             CreateUserFunc: func(user storage.User) error {
 // 	               panic("mock out the CreateUser method")
+//             },
+//             DeleteTokenFunc: func(id int64) error {
+// 	               panic("mock out the DeleteToken method")
+//             },
+//             TokensByEMailAndTokenFunc: func(email string, token string) ([]storage.Token, error) {
+// 	               panic("mock out the TokensByEMailAndToken method")
 //             },
 //             UpdateUserFunc: func(user storage.User) error {
 // 	               panic("mock out the UpdateUser method")
@@ -50,6 +58,12 @@ type StorageMock struct {
 	// CreateUserFunc mocks the CreateUser method.
 	CreateUserFunc func(user storage.User) error
 
+	// DeleteTokenFunc mocks the DeleteToken method.
+	DeleteTokenFunc func(id int64) error
+
+	// TokensByEMailAndTokenFunc mocks the TokensByEMailAndToken method.
+	TokensByEMailAndTokenFunc func(email string, token string) ([]storage.Token, error)
+
 	// UpdateUserFunc mocks the UpdateUser method.
 	UpdateUserFunc func(user storage.User) error
 
@@ -67,6 +81,18 @@ type StorageMock struct {
 		CreateUser []struct {
 			// User is the user argument value.
 			User storage.User
+		}
+		// DeleteToken holds details about calls to the DeleteToken method.
+		DeleteToken []struct {
+			// ID is the id argument value.
+			ID int64
+		}
+		// TokensByEMailAndToken holds details about calls to the TokensByEMailAndToken method.
+		TokensByEMailAndToken []struct {
+			// Email is the email argument value.
+			Email string
+			// Token is the token argument value.
+			Token string
 		}
 		// UpdateUser holds details about calls to the UpdateUser method.
 		UpdateUser []struct {
@@ -140,6 +166,72 @@ func (mock *StorageMock) CreateUserCalls() []struct {
 	lockStorageMockCreateUser.RLock()
 	calls = mock.calls.CreateUser
 	lockStorageMockCreateUser.RUnlock()
+	return calls
+}
+
+// DeleteToken calls DeleteTokenFunc.
+func (mock *StorageMock) DeleteToken(id int64) error {
+	if mock.DeleteTokenFunc == nil {
+		panic("StorageMock.DeleteTokenFunc: method is nil but Storage.DeleteToken was just called")
+	}
+	callInfo := struct {
+		ID int64
+	}{
+		ID: id,
+	}
+	lockStorageMockDeleteToken.Lock()
+	mock.calls.DeleteToken = append(mock.calls.DeleteToken, callInfo)
+	lockStorageMockDeleteToken.Unlock()
+	return mock.DeleteTokenFunc(id)
+}
+
+// DeleteTokenCalls gets all the calls that were made to DeleteToken.
+// Check the length with:
+//     len(mockedStorage.DeleteTokenCalls())
+func (mock *StorageMock) DeleteTokenCalls() []struct {
+	ID int64
+} {
+	var calls []struct {
+		ID int64
+	}
+	lockStorageMockDeleteToken.RLock()
+	calls = mock.calls.DeleteToken
+	lockStorageMockDeleteToken.RUnlock()
+	return calls
+}
+
+// TokensByEMailAndToken calls TokensByEMailAndTokenFunc.
+func (mock *StorageMock) TokensByEMailAndToken(email string, token string) ([]storage.Token, error) {
+	if mock.TokensByEMailAndTokenFunc == nil {
+		panic("StorageMock.TokensByEMailAndTokenFunc: method is nil but Storage.TokensByEMailAndToken was just called")
+	}
+	callInfo := struct {
+		Email string
+		Token string
+	}{
+		Email: email,
+		Token: token,
+	}
+	lockStorageMockTokensByEMailAndToken.Lock()
+	mock.calls.TokensByEMailAndToken = append(mock.calls.TokensByEMailAndToken, callInfo)
+	lockStorageMockTokensByEMailAndToken.Unlock()
+	return mock.TokensByEMailAndTokenFunc(email, token)
+}
+
+// TokensByEMailAndTokenCalls gets all the calls that were made to TokensByEMailAndToken.
+// Check the length with:
+//     len(mockedStorage.TokensByEMailAndTokenCalls())
+func (mock *StorageMock) TokensByEMailAndTokenCalls() []struct {
+	Email string
+	Token string
+} {
+	var calls []struct {
+		Email string
+		Token string
+	}
+	lockStorageMockTokensByEMailAndToken.RLock()
+	calls = mock.calls.TokensByEMailAndToken
+	lockStorageMockTokensByEMailAndToken.RUnlock()
 	return calls
 }
 

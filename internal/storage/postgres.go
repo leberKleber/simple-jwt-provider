@@ -28,7 +28,7 @@ func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (*Sto
 	}, nil
 }
 
-func (s *Storage) Migrate(dbMigrationsPath string) error {
+func (s Storage) Migrate(dbMigrationsPath string) error {
 	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to create driver for database schema migration: %w", err)
@@ -52,6 +52,6 @@ func (s *Storage) Migrate(dbMigrationsPath string) error {
 	return nil
 }
 
-func (s *Storage) Close() error {
+func (s Storage) Close() error {
 	return s.db.Close()
 }
