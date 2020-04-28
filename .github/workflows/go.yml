@@ -30,4 +30,4 @@ jobs:
       run: go test -v ./...
 
     - name: Component-Tests
-      run: ./component-tests-sh
+      run: ./component-tests.sh
