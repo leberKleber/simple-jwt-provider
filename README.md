@@ -1,6 +1,34 @@
+![Go](https://github.com/leberKleber/simple-jwt-provider/workflows/Go/badge.svg?branch=master)
+
 # simple-jwt-provider
 
-![Go](https://github.com/leberKleber/simple-jwt-provider/workflows/Go/badge.svg?branch=master)
+## Try it
+
+```bash
+git clone git@github.com:leberKleber/simple-jwt-provider.git
+docker-compose -f example/docker-compose.yml up
+
+# create user via admin-api
+./example/create_user.sh test.test@test.test password
+
+# login with created user
+./example/login.sh test.test@test.test password
+
+# reset password
+# 1) create password reset request
+#    - mail with reset token would be send
+# 2) reset password with received token
+
+# 1) create password reset request 
+./example/create_password-reset-request.sh test.test@test.test
+# 1.1) open browser at http://127.0.0.1:8025/ and copy reset token (token only not the url)
+# 2) reset password with received token
+./example/reset-password.sh test.test@test.test newPassword {reset-token}
+# verify new password
+./example/login.sh test.test@test.test newPassword
+
+```
+
 
 ## Getting started
 ### Generate ECDSA-512 key pair
