@@ -1,5 +1,7 @@
 # simple-jwt-provider
 
+![Go](https://github.com/leberKleber/simple-jwt-provider/workflows/Go/badge.svg?branch=master)
+
 ## Getting started
 ### Generate ECDSA-512 key pair
 
