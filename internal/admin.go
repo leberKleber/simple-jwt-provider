@@ -14,8 +14,8 @@ var ErrUserAlreadyExists = fmt.Errorf("user already exists")
 Creates new user with given email and password
 return ErrUserAlreadyExists when user already exists
 */
-func (p *Provider) CreateUser(email, password string) error {
-	securedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+func (p Provider) CreateUser(email, password string) error {
+	securedPassword, err := bcryptPassword(password)
 	if err != nil {
 		return fmt.Errorf("failed to bcrypt password: %w", err)
 	}
@@ -32,4 +32,8 @@ func (p *Provider) CreateUser(email, password string) error {
 	}
 
 	return nil
+}
+
+func bcryptPassword(password string) ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
 }

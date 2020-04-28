@@ -51,7 +51,7 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to create mailer")
 	}
 
-	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: m, PasswordResetURLFmt: cfg.PasswordResetURL}
+	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: m, PasswordResetURLFMT: cfg.PasswordResetURL}
 	server := web.NewServer(provider, cfg.AdminAPI.Enable, cfg.AdminAPI.Username, cfg.AdminAPI.Password)
 
 	if err := server.ListenAndServe(cfg.ServerAddress); err != nil {

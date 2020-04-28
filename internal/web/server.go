@@ -13,6 +13,7 @@ type Provider interface {
 	Login(email, password string) (string, error)
 	CreateUser(email, password string) error
 	CreatePasswordResetRequest(email string) error
+	ResetPassword(email, resetToken, password string) error
 }
 
 type Server struct {
@@ -28,6 +29,7 @@ func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPasswo
 	v1.Path("/internal/alive").Methods(http.MethodGet).HandlerFunc(s.aliveHandler)
 	v1.Path("/auth/login").Methods(http.MethodPost).HandlerFunc(s.loginHandler)
 	v1.Path("/auth/password-reset-request").Methods(http.MethodPost).HandlerFunc(s.passwordResetRequestHandler)
+	v1.Path("/auth/password-reset").Methods(http.MethodPost).HandlerFunc(s.passwordResetHandler)
 
 	if enableAdminAPI {
 		adminAPI := v1.PathPrefix("/admin").Subrouter()

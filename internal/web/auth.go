@@ -87,3 +87,45 @@ func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusCreated)
 	return
 }
+
+func (s *Server) passwordResetHandler(w http.ResponseWriter, r *http.Request) {
+	requestBody := struct {
+		EMail      string `json:"email"`
+		ResetToken string `json:"reset_token"`
+		Password   string `json:"password"`
+	}{}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	if requestBody.EMail == "" {
+		writeError(w, http.StatusBadRequest, "EMail must be set")
+		return
+	}
+
+	if requestBody.ResetToken == "" {
+		writeError(w, http.StatusBadRequest, "ResetToken must be set")
+		return
+	}
+
+	if requestBody.Password == "" {
+		writeError(w, http.StatusBadRequest, "Password must be set")
+		return
+	}
+
+	err = s.p.ResetPassword(requestBody.EMail, requestBody.ResetToken, requestBody.Password)
+	if err != nil {
+		if errors.Is(err, internal.ErrNoValidTokenFound) {
+			writeError(w, http.StatusBadRequest, "reset-token is invalid or token email combination is not correct")
+			return
+		}
+		logrus.WithError(err).Error("Failed to create password-reset-request")
+		writeError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
