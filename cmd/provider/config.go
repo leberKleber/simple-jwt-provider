@@ -8,10 +8,9 @@ import (
 )
 
 type config struct {
-	ServerAddress    string `conf:"help:Server-address network-interface to bind on e.g.: '127.0.0.1:8080',default:0.0.0.0:80"`
-	JWTPrivateKey    string `conf:"env:JWT_PRIVATE_KEY,help:JWT PrivateKey ECDSA512,required,noprint"`
-	PasswordResetURL string `conf:"help: External URL to password-reset api. Password-reset-token would be replaced by %s,default:localhost:8080/password-reset?token=%s"`
-	DB               struct {
+	ServerAddress string `conf:"help:Server-address network-interface to bind on e.g.: '127.0.0.1:8080',default:0.0.0.0:80"`
+	JWTPrivateKey string `conf:"env:JWT_PRIVATE_KEY,help:JWT PrivateKey ECDSA512,required,noprint"`
+	DB            struct {
 		Host                 string `conf:"help:Database-Host,required"`
 		Port                 int    `conf:"help:Database-Port,default:5432"`
 		Name                 string `conf:"help:Database-name,default:'simple-jwt-provider'"`

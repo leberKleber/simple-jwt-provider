@@ -64,7 +64,7 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 		return fmt.Errorf("failed to create password-reset-token for email %q: %w", email, err)
 	}
 
-	err = p.Mailer.SendPasswordResetRequestEMail(email, fmt.Sprintf(p.PasswordResetURLFMT, t))
+	err = p.Mailer.SendPasswordResetRequestEMail(email, t)
 	if err != nil {
 		return fmt.Errorf("failed to send password-reset-email: %w", err)
 	}
