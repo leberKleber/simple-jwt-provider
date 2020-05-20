@@ -25,8 +25,7 @@ type Mailer interface {
 }
 
 type Provider struct {
-	Storage             Storage
-	JWTGenerator        JWTGenerator
-	Mailer              Mailer
-	PasswordResetURLFMT string
+	Storage      Storage
+	JWTGenerator JWTGenerator
+	Mailer       Mailer
 }

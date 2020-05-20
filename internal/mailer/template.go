@@ -58,14 +58,14 @@ func (t Template) Render(args interface{}) (*mail.Message, error) {
 	var buf bytes.Buffer
 	err = t.textTmpl.Execute(&buf, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render mail-text-body")
+		return nil, fmt.Errorf("failed to render mail-text-body: %w", err)
 	}
 	msg.AddAlternative("text/plain", buf.String())
 
 	buf.Reset()
 	err = t.htmlTmpl.Execute(&buf, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render mail-html-body")
+		return nil, fmt.Errorf("failed to render mail-html-body: %w", err)
 	}
 	msg.AddAlternative("text/html", buf.String())
 

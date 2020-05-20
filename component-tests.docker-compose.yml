@@ -19,12 +19,12 @@ services:
       SJP_ADMIN_API_ENABLE: "true"
       SJP_ADMIN_API_USERNAME: "username"
       SJP_ADMIN_API_PASSWORD: "password"
-      SJP_MAIL_SMTP_HOST: "smtp"
+      SJP_MAIL_SMTP_HOST: "mail-server"
       SJP_MAIL_SMTP_PORT: 1025
       SJP_MAIL_SMTP_PASSWORD: ""
       SJP_MAIL_SMTP_USERNAME: ""
       SJP_MAIL_TLS_INSECURE_SKIP_VERIFY: "true"
-      SJP_MAIL_TLS_SERVER_NAME: "smtp"
+      SJP_MAIL_TLS_SERVER_NAME: "mail-server"
     networks:
         - component-tests
 
@@ -38,7 +38,7 @@ services:
     networks:
       - component-tests
 
-  smtp:
+  mail-server:
     image: mailhog/mailhog
     restart: always
     networks:
