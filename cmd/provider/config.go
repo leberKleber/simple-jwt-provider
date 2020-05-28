@@ -30,10 +30,10 @@ type config struct {
 	}
 	Mail struct {
 		TemplatesFolderPath string `conf:"help:Path to mail-templates folder,default:/mail-templates"`
-		SMTPUsername        string `conf:"env:MAIL_SMTP_USERNAME,help:SMTP username to authorize with,required"`
-		SMTPPassword        string `conf:"env:MAIL_SMTP_PASSWORD,help:SMTP password to authorize with,required,noprint"`
 		SMTPHost            string `conf:"env:MAIL_SMTP_HOST,help:SMTP host to connect to,required"`
 		SMTPPort            int    `conf:"env:MAIL_SMTP_PORT,help:SMTP port to connect to,default:587"`
+		SMTPUsername        string `conf:"env:MAIL_SMTP_USERNAME,help:SMTP username to authorize with,required"`
+		SMTPPassword        string `conf:"env:MAIL_SMTP_PASSWORD,help:SMTP password to authorize with,required,noprint"`
 		TLS                 struct {
 			InsecureSkipVerify bool   `conf:"help:true if certificates should not be verified,default:false"`
 			ServerName         string `conf:"help:name of the server who expose the certificate"`
