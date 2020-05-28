@@ -9,8 +9,13 @@ import (
 
 type config struct {
 	ServerAddress string `conf:"help:Server-address network-interface to bind on e.g.: '127.0.0.1:8080',default:0.0.0.0:80"`
-	JWTPrivateKey string `conf:"env:JWT_PRIVATE_KEY,help:JWT PrivateKey ECDSA512,required,noprint"`
-	DB            struct {
+	JWT           struct {
+		PrivateKey string `conf:"env:JWT_PRIVATE_KEY,help:JWT PrivateKey ECDSA512,required,noprint"`
+		Audience   string `conf:"env:JWT_AUDIENCE,help:Audience private claim which will be applied in each JWT"`
+		Issuer     string `conf:"env:JWT_ISSUER,help:Issuer private claim which will be applied in each JWT"`
+		Subject    string `conf:"env:JWT_SUBJECT,help:Subject private claim which will be applied in each JWT"`
+	}
+	DB struct {
 		Host                 string `conf:"help:Database-Host,required"`
 		Port                 int    `conf:"help:Database-Port,default:5432"`
 		Name                 string `conf:"help:Database-name,default:'simple-jwt-provider'"`

@@ -34,7 +34,7 @@ func main() {
 		logrus.WithError(err).Fatal("Could not migrate database")
 	}
 
-	jwtGenerator, err := jwt.NewGenerator(cfg.JWTPrivateKey)
+	jwtGenerator, err := jwt.NewGenerator(cfg.JWT.PrivateKey, cfg.JWT.Audience, cfg.JWT.Issuer, cfg.JWT.Subject)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to create jwt generator")
 	}

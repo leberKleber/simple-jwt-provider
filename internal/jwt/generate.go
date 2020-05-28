@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"strings"
 	"time"
 )
@@ -15,18 +16,17 @@ var nowFunc = time.Now
 var lifeTime = 4 * time.Hour
 
 type Generator struct {
-	privateKey *ecdsa.PrivateKey
+	privateKey    *ecdsa.PrivateKey
+	privateClaims struct {
+		audience string
+		issuer   string
+		subject  string
+	}
 }
 
-type claims struct {
-	jwt.StandardClaims
-	EMail string `json:"email"`
-}
-
-func NewGenerator(key string) (*Generator, error) {
-	key = strings.Replace(key, `\n`, "\n", -1) //TODO fix me (needed for start via ide)
-
-	blockPrv, _ := pem.Decode([]byte(key))
+func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Generator, error) {
+	privateKey = strings.Replace(privateKey, `\n`, "\n", -1) //TODO fix me (needed for start via ide)
+	blockPrv, _ := pem.Decode([]byte(privateKey))
 	if blockPrv == nil {
 		return nil, errors.New("no valid public key found")
 	}
@@ -38,19 +38,39 @@ func NewGenerator(key string) (*Generator, error) {
 
 	return &Generator{
 		privateKey: pKey,
+		privateClaims: struct {
+			audience string
+			issuer   string
+			subject  string
+		}{
+			audience: jwtAudience,
+			issuer:   jwtIssuer,
+			subject:  jwtSubject,
+		},
 	}, err
 }
 
-func (g *Generator) Generate(email string) (string, error) {
-
+func (g Generator) Generate(email string) (string, error) {
 	now := nowFunc()
-	t := jwt.NewWithClaims(jwt.SigningMethodES512, claims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: now.Add(lifeTime).Unix(),
-			IssuedAt:  now.Unix(),
-		},
-		EMail: email,
+	jwtID, err := uuid.NewRandom()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate jwt-id: %w", err)
+	}
+
+	t := jwt.NewWithClaims(jwt.SigningMethodES512, jwt.MapClaims{
+		//standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
+		"aud": g.privateClaims.audience, //Audience
+		"exp": now.Add(lifeTime).Unix(), //ExpiresAt
+		"jit": jwtID,                    //Id
+		"iat": now.Unix(),               //IssuedAt
+		"iss": g.privateClaims.issuer,   //Issuer
+		"nbf": now.Unix(),               //NotBefore
+		"sub": g.privateClaims.subject,  //Subject
+
+		//public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+		"email": email, //EMail
 	})
+
 	signedToken, err := t.SignedString(g.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign token: %w", err)
