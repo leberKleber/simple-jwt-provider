@@ -11,6 +11,9 @@ services:
     restart: on-failure
     environment:
       SJP_JWT_PRIVATE_KEY: "\n-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIASzDZeTVLxcE5KTAmwrKwFjzr5cDrA+tttx9XRUz0K7AlROtj7cMG\nrHu/bdKj7lc2WaW8x/EOrU/FeCcsIL5nTH+gBwYFK4EEACOhgYkDgYYABAFBJr90\nWldGrPppBCbHqw2nGXeafxnSj6qB+A7E8A/G74mmmwIaqtf/pJ5QjqTPcAVUAEYF\nTz/0SPO3tPL1Ym3V0QH7TfnTf7EueabJqPdsSGR6uvbb2YOA9vy4OU8SXp/9a/4x\nr94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==\n-----END EC PRIVATE KEY-----"
+      SJP_JWT_AUDIENCE: "<audience>"
+      SJP_JWT_ISSUER: "<issuer>"
+      SJP_JWT_SUBJECT: "<subject>"
       SJP_DB_HOST: "db"
       SJP_DB_PORT: 5432
       SJP_DB_NAME: "simple-jwt-provider"
@@ -26,7 +29,7 @@ services:
       SJP_MAIL_TLS_INSECURE_SKIP_VERIFY: "true"
       SJP_MAIL_TLS_SERVER_NAME: "mail-server"
     networks:
-        - component-tests
+      - component-tests
 
   db:
     image: postgres
