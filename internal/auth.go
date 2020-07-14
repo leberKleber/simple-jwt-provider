@@ -33,7 +33,7 @@ func (p Provider) Login(email, password string) (string, error) {
 		return "", ErrIncorrectPassword
 	}
 
-	return p.JWTGenerator.Generate(email)
+	return p.JWTGenerator.Generate(email, u.Claims)
 }
 
 /**

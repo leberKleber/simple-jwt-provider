@@ -11,10 +11,10 @@ var bcryptCost = 12
 var ErrUserAlreadyExists = fmt.Errorf("user already exists")
 
 /**
-Creates new user with given email and password
+Creates new user with given email, password and claims.
 return ErrUserAlreadyExists when user already exists
 */
-func (p Provider) CreateUser(email, password string) error {
+func (p Provider) CreateUser(email, password string, claims map[string]interface{}) error {
 	securedPassword, err := bcryptPassword(password)
 	if err != nil {
 		return fmt.Errorf("failed to bcrypt password: %w", err)
@@ -23,6 +23,7 @@ func (p Provider) CreateUser(email, password string) error {
 	err = p.Storage.CreateUser(storage.User{
 		EMail:    email,
 		Password: securedPassword,
+		Claims:   claims,
 	})
 	if err != nil {
 		if errors.Is(err, storage.ErrUserAlreadyExists) {

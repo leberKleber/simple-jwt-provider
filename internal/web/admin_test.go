@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -54,10 +55,13 @@ func TestCreateUserHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var givenEMail string
 			var givenPassword string
+			var givenClaims map[string]interface{}
+
 			toTest := NewServer(&ProviderMock{
-				CreateUserFunc: func(email string, password string) error {
+				CreateUserFunc: func(email, password string, claims map[string]interface{}) error {
 					givenEMail = email
 					givenPassword = password
+					givenClaims = claims
 
 					return tt.providerError
 				},
@@ -83,6 +87,10 @@ func TestCreateUserHandler(t *testing.T) {
 
 			if givenPassword != tt.expectedPassword {
 				t.Errorf("Provider called with unexpected password. Given: %q, Expected: %q", givenPassword, tt.expectedPassword)
+			}
+
+			if !reflect.DeepEqual(givenClaims, givenClaims) { //TODO check claims
+				t.Errorf("Request respond with unexpected claims code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
 			}
 
 			if resp.StatusCode != tt.expectedResponseCode {

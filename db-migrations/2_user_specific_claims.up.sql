@@ -1,1 +1,1 @@
-ALTER TABLE users ADD COLUMN claims jsonb;
+ALTER TABLE users ADD COLUMN claims bytea;

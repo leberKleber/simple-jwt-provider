@@ -28,7 +28,7 @@ func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Gener
 	privateKey = strings.Replace(privateKey, `\n`, "\n", -1) //TODO fix me (needed for start via ide)
 	blockPrv, _ := pem.Decode([]byte(privateKey))
 	if blockPrv == nil {
-		return nil, errors.New("no valid public key found")
+		return nil, errors.New("no valid private key found")
 	}
 
 	pKey, err := x509.ParseECPrivateKey(blockPrv.Bytes)
@@ -50,26 +50,28 @@ func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Gener
 	}, err
 }
 
-func (g Generator) Generate(email string) (string, error) {
+func (g Generator) Generate(email string, userClaims map[string]interface{}) (string, error) {
 	now := nowFunc()
 	jwtID, err := uuid.NewRandom()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate jwt-id: %w", err)
 	}
 
-	t := jwt.NewWithClaims(jwt.SigningMethodES512, jwt.MapClaims{
-		//standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
-		"aud": g.privateClaims.audience, //Audience
-		"exp": now.Add(lifeTime).Unix(), //ExpiresAt
-		"jit": jwtID,                    //Id
-		"iat": now.Unix(),               //IssuedAt
-		"iss": g.privateClaims.issuer,   //Issuer
-		"nbf": now.Unix(),               //NotBefore
-		"sub": g.privateClaims.subject,  //Subject
+	claims := jwt.MapClaims(userClaims)
 
-		//public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
-		"email": email, //EMail
-	})
+	//standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
+	claims["aud"] = g.privateClaims.audience //Audience
+	claims["exp"] = now.Add(lifeTime).Unix() //ExpiresAt
+	claims["jit"] = jwtID                    //Id
+	claims["iat"] = now.Unix()               //IssuedAt
+	claims["iss"] = g.privateClaims.issuer   //Issuer
+	claims["nbf"] = now.Unix()               //NotBefore
+	claims["sub"] = g.privateClaims.subject  //Subject
+
+	//public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+	claims["email"] = email //EMail
+
+	t := jwt.NewWithClaims(jwt.SigningMethodES512, claims)
 
 	signedToken, err := t.SignedString(g.privateKey)
 	if err != nil {
