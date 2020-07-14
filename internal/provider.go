@@ -16,7 +16,7 @@ type Storage interface {
 
 //go:generate moq -out jwt_generator_moq_test.go . JWTGenerator
 type JWTGenerator interface {
-	Generate(email string) (string, error)
+	Generate(email string, userClaims map[string]interface{}) (string, error)
 }
 
 //go:generate moq -out mailer_moq_test.go . Mailer

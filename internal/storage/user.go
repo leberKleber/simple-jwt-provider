@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
@@ -10,6 +11,7 @@ import (
 type User struct {
 	EMail    string
 	Password []byte
+	Claims   map[string]interface{}
 }
 
 var ErrUserNotFound = errors.New("could not found user")
@@ -19,31 +21,42 @@ func (s *Storage) User(email string) (User, error) {
 	user := User{
 		EMail: email,
 	}
+	var rawClaims []byte
 	err := s.db.QueryRow(
-		"SELECT password FROM users WHERE email = $1;",
+		"SELECT password, claims FROM users WHERE email = $1;",
 		email,
-	).Scan(&user.Password)
+	).Scan(&user.Password, &rawClaims)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return user, ErrUserNotFound
 		}
 
-		return user, fmt.Errorf("failed to query user cause: %w", err)
+		return user, fmt.Errorf("failed to query user: %w", err)
+	}
+
+	err = json.Unmarshal(rawClaims, &user.Claims)
+	if err != nil {
+		return user, fmt.Errorf("failed to unmarshal user>claims: %w", err)
 	}
 
 	return user, nil
 }
 
 func (s *Storage) CreateUser(u User) error {
-	stmt, err := s.db.Prepare("INSERT INTO users (email, password) VALUES($1, $2)")
+	stmt, err := s.db.Prepare("INSERT INTO users (email, password, claims) VALUES($1, $2, $3)")
 	if err != nil {
 		return fmt.Errorf("failed to prepare stmt: %w", err)
 	}
 
-	_, err = stmt.Exec(u.EMail, u.Password)
+	rawClaims, err := json.Marshal(u.Claims)
 	if err != nil {
-		pqErr := err.(*pq.Error)
-		if pqErr.Constraint == "email_unique" {
+		return fmt.Errorf("failed to marhsal user>claims: %w", err)
+	}
+
+	_, err = stmt.Exec(u.EMail, u.Password, rawClaims)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok && pqErr.Constraint == "email_unique" {
 			return ErrUserAlreadyExists
 		}
 		return fmt.Errorf("failed to exec stmt: %w", err)
@@ -53,12 +66,17 @@ func (s *Storage) CreateUser(u User) error {
 }
 
 func (s *Storage) UpdateUser(u User) error {
-	stmt, err := s.db.Prepare("UPDATE users SET password = $2 WHERE email = $1;")
+	stmt, err := s.db.Prepare("UPDATE users SET password = $2, claims = $3 WHERE email = $1;")
 	if err != nil {
 		return fmt.Errorf("failed to prepare stmt: %w", err)
 	}
 
-	res, err := stmt.Exec(u.EMail, u.Password)
+	rawClaims, err := json.Marshal(u.Claims)
+	if err != nil {
+		return fmt.Errorf("failed to marhsal user>claims: %w", err)
+	}
+
+	res, err := stmt.Exec(u.EMail, u.Password, rawClaims)
 	if err != nil {
 		return fmt.Errorf("failed to exec stmt: %w", err)
 	}
