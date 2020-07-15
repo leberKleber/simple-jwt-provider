@@ -4,11 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
+	"golang.org/x/crypto/bcrypt"
 	"reflect"
+	"regexp"
 	"testing"
+	"time"
 )
 
 func TestProvider_Login(t *testing.T) {
+	bcryptCost = bcrypt.MinCost
+
 	tests := []struct {
 		name                   string
 		givenEMail             string
@@ -106,4 +111,226 @@ func TestProvider_Login(t *testing.T) {
 		})
 	}
 
+}
+
+func TestProvider_CreatePasswordResetRequest(t *testing.T) {
+	tests := []struct {
+		name                      string
+		givenEMail                string
+		expectedError             error
+		dbUserReturnError         error
+		dbCreateTokenReturnError  error
+		mailerError               error
+		dbExpectedToken           storage.Token
+		expectedMailRecipient     string
+		passwordResetTokenPresent bool
+	}{
+		{
+			name:                  "Happycase",
+			givenEMail:            "test.test@test.test",
+			expectedMailRecipient: "test.test@test.test",
+			dbExpectedToken: storage.Token{
+				Type:  "reset",
+				EMail: "test.test@test.test",
+				ID:    0,
+			},
+			expectedError: nil,
+		}, {
+			name:              "User not found",
+			givenEMail:        "not@existing.user",
+			dbUserReturnError: storage.ErrUserNotFound,
+			expectedError:     ErrUserNotFound,
+		}, {
+			name:              "Unexpected db error while finding user",
+			givenEMail:        "test.test@test",
+			dbUserReturnError: errors.New("random error"),
+			expectedError:     errors.New("failed to query user with email \"test.test@test\": random error"),
+		}, {
+			name:                     "Unexpected db error while create token",
+			givenEMail:               "test.test@test",
+			dbCreateTokenReturnError: errors.New("random error"),
+			expectedError:            errors.New("failed to create password-reset-token for email \"test.test@test\": random error"),
+			dbExpectedToken: storage.Token{
+				Type:  "reset",
+				EMail: "test.test@test",
+				ID:    0,
+			},
+		}, {
+			name:                  "Mailer error",
+			givenEMail:            "test.test@test",
+			mailerError:           errors.New("random error"),
+			expectedError:         errors.New("failed to send password-reset-email: random error"),
+			expectedMailRecipient: "test.test@test",
+			dbExpectedToken: storage.Token{
+				Type:  "reset",
+				EMail: "test.test@test",
+				ID:    0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var storageUserEMail string
+			var storageCreateTokenToken storage.Token
+			var mailerRecipient string
+			var mailerPasswordResetToken string
+			toTest := Provider{
+				Storage: &StorageMock{
+					UserFunc: func(email string) (storage.User, error) {
+						storageUserEMail = email
+						return storage.User{}, tt.dbUserReturnError
+					},
+					CreateTokenFunc: func(t storage.Token) (int64, error) {
+						storageCreateTokenToken = t
+						return 0, tt.dbCreateTokenReturnError
+					},
+				},
+				Mailer: &MailerMock{
+					SendPasswordResetRequestEMailFunc: func(recipient string, passwordResetToken string) error {
+						mailerRecipient = recipient
+						mailerPasswordResetToken = passwordResetToken
+						return tt.mailerError
+					},
+				},
+			}
+
+			err := toTest.CreatePasswordResetRequest(tt.givenEMail)
+			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
+				t.Fatalf("Processing error is not as expected: \nExpected:\n%s\nGiven:\n%s", tt.expectedError, err)
+			}
+
+			if storageUserEMail != tt.givenEMail {
+				t.Errorf("The sorage requested usermail is not as expected: \nExpected:\n%s\nGiven:\n%s", tt.givenEMail, storageUserEMail)
+			}
+
+			storageCreateTokenToken.Token = ""
+			storageCreateTokenToken.CreatedAt = time.Time{}
+			if !reflect.DeepEqual(storageCreateTokenToken, tt.dbExpectedToken) {
+				t.Errorf("The sorage token to create is not as expected: \nExpected:\n%#v\nGiven:\n%#v", tt.dbExpectedToken, storageCreateTokenToken)
+			}
+
+			if mailerRecipient != tt.expectedMailRecipient {
+				t.Errorf("The mailer recipient is not as expected: \nExpected:\n%#v\nGiven:\n%#v", tt.expectedMailRecipient, mailerRecipient)
+			}
+
+			if tt.passwordResetTokenPresent {
+				matched, err := regexp.Match("^[0-9A-Fa-f]{64}$", []byte(mailerPasswordResetToken))
+				if err != nil {
+					t.Fatalf("could not compile regex")
+				}
+				if !matched {
+					t.Errorf("PasswordResetToken should be a 64 char hex string but was %q", mailerPasswordResetToken)
+				}
+			}
+		})
+	}
+}
+
+func TestProvider_ResetPassword(t *testing.T) {
+	bcryptCost = bcrypt.MinCost
+
+	tests := []struct {
+		name               string
+		givenEMail         string
+		givenResetToken    string
+		givenNewPassword   string
+		dbToken            []storage.Token
+		dbTokenError       error
+		dbUser             storage.User
+		dbUserError        error
+		dbUpdateUserError  error
+		dbDeleteTokenError error
+		expectedError      error
+	}{
+		{
+			name:             "Happycase",
+			givenNewPassword: "newPassword",
+			givenResetToken:  "resetToken",
+			givenEMail:       "email",
+			dbToken: []storage.Token{
+				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
+				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+			},
+		},
+		{
+			name:             "No token found",
+			givenNewPassword: "newPassword",
+			givenResetToken:  "resetToken",
+			givenEMail:       "email",
+			expectedError:    ErrNoValidTokenFound,
+			dbToken:          []storage.Token{},
+		},
+		{
+			name:             "Error while find tokens",
+			givenNewPassword: "newPassword",
+			givenResetToken:  "resetToken",
+			givenEMail:       "email",
+			expectedError:    errors.New("faild to find all avalilable tokens: unexpected error"),
+			dbToken:          []storage.Token{},
+			dbTokenError:     errors.New("unexpected error"),
+		},
+		{
+			name:             "Error while find user",
+			givenNewPassword: "newPassword",
+			givenResetToken:  "resetToken",
+			givenEMail:       "email",
+			dbToken: []storage.Token{
+				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
+				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+			},
+			dbUserError:   errors.New("unexpected error"),
+			expectedError: errors.New("failed to find user: unexpected error"),
+		},
+		{
+			name:             "Error while update user",
+			givenNewPassword: "newPassword",
+			givenResetToken:  "resetToken",
+			givenEMail:       "email",
+			dbToken: []storage.Token{
+				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
+				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+			},
+			dbUpdateUserError: errors.New("unexpected error"),
+			expectedError:     errors.New("failed to update user: unexpected error"),
+		},
+		{
+			name:             "Error while delete token",
+			givenNewPassword: "newPassword",
+			givenResetToken:  "resetToken",
+			givenEMail:       "email",
+			dbToken: []storage.Token{
+				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
+				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+			},
+			dbDeleteTokenError: errors.New("unexpected error"),
+			expectedError:      errors.New("failed to delete token: unexpected error"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			toTest := Provider{
+				Storage: &StorageMock{
+					TokensByEMailAndTokenFunc: func(email string, token string) ([]storage.Token, error) {
+						return tt.dbToken, tt.dbTokenError
+					},
+					UserFunc: func(email string) (storage.User, error) {
+						return tt.dbUser, tt.dbUserError
+					},
+					UpdateUserFunc: func(user storage.User) error {
+						return tt.dbUpdateUserError
+					},
+					DeleteTokenFunc: func(id int64) error {
+						return tt.dbDeleteTokenError
+					},
+				},
+			}
+
+			err := toTest.ResetPassword(tt.givenEMail, tt.givenResetToken, tt.givenNewPassword)
+			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
+				t.Fatalf("Processing error is not as expected: \nExpected:\n%s\nGiven:\n%s", tt.expectedError, err)
+			}
+		})
+	}
 }
