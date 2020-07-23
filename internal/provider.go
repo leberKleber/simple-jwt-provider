@@ -21,7 +21,7 @@ type JWTGenerator interface {
 
 //go:generate moq -out mailer_moq_test.go . Mailer
 type Mailer interface {
-	SendPasswordResetRequestEMail(recipient, passwordResetToken string) error
+	SendPasswordResetRequestEMail(recipient, passwordResetToken string, claims map[string]interface{}) error
 }
 
 type Provider struct {

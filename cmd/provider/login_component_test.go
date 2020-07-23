@@ -38,6 +38,11 @@ func TestLogin(t *testing.T) {
 		t.Errorf("unexpected sub-privateClaim value. Expected: %q. Given: %q", expectedJWTSubject, claims["sub"])
 	}
 
+	expectedCustomClaim := "customClaimValue"
+	if claims["myCustomClaim"] != expectedCustomClaim {
+		t.Errorf("unexpected myCustomClaim value. Expected: %q. Given: %q", expectedCustomClaim, claims["myCustomClaim"])
+	}
+
 	if claims["id"] == "" {
 		t.Error("jwt id has not been set")
 	}
@@ -113,7 +118,7 @@ func loginUser(t *testing.T, email, password string) string {
 		bytes.NewReader([]byte(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))),
 	)
 	if err != nil {
-		t.Fatalf("Failed to login cause: %s", err)
+		t.Fatalf("Failed to login with response: %v cause: %s", resp, err)
 	}
 
 	responseBody := struct {

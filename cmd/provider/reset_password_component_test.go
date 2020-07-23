@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -18,13 +19,13 @@ func TestResetPassword(t *testing.T) {
 
 	createUser(t, email, password)
 	createPasswordResetRequest(t, email)
-	token := findPasswordResetTokenFromMail(t, email)
+	token := findPasswordResetTokenFromMailAndVerifyContent(t, email)
 	resetPassword(t, email, token, newPassword)
 
 	loginUser(t, email, newPassword)
 }
 
-func findPasswordResetTokenFromMail(t *testing.T, email string) string {
+func findPasswordResetTokenFromMailAndVerifyContent(t *testing.T, email string) string {
 	resp, err := http.Get("http://mail-server:8025/api/v2/messages")
 	if err != nil {
 		t.Fatalf("Failed to login cause: %s", err)
@@ -56,6 +57,11 @@ func findPasswordResetTokenFromMail(t *testing.T, email string) string {
 
 	if !respMailFound {
 		t.Fatal("could not find mail body")
+	}
+
+	expectedCustomCalimValue := "customClaimValue"
+	if !strings.Contains(respMail.Data, "customClaimValue") {
+		t.Errorf("email body dosent contains custom claim value %q: \n%q", expectedCustomCalimValue, respMail.Data)
 	}
 
 	reg, err := regexp.Compile("([a-f0-9]{64})")
