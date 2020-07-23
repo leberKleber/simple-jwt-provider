@@ -187,7 +187,7 @@ func TestProvider_CreatePasswordResetRequest(t *testing.T) {
 					},
 				},
 				Mailer: &MailerMock{
-					SendPasswordResetRequestEMailFunc: func(recipient string, passwordResetToken string) error {
+					SendPasswordResetRequestEMailFunc: func(recipient string, passwordResetToken string, claims map[string]interface{}) error {
 						mailerRecipient = recipient
 						mailerPasswordResetToken = passwordResetToken
 						return tt.mailerError

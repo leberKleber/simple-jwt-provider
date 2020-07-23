@@ -41,7 +41,7 @@ CreatePasswordResetRequest send a password-reset-request email to the give addre
 return ErrUserNotFound when user does not exists
 */
 func (p Provider) CreatePasswordResetRequest(email string) error {
-	_, err := p.Storage.User(email)
+	u, err := p.Storage.User(email)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return ErrUserNotFound
@@ -64,7 +64,7 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 		return fmt.Errorf("failed to create password-reset-token for email %q: %w", email, err)
 	}
 
-	err = p.Mailer.SendPasswordResetRequestEMail(email, t)
+	err = p.Mailer.SendPasswordResetRequestEMail(email, t, u.Claims)
 	if err != nil {
 		return fmt.Errorf("failed to send password-reset-email: %w", err)
 	}

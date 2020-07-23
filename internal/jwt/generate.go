@@ -57,7 +57,10 @@ func (g Generator) Generate(email string, userClaims map[string]interface{}) (st
 		return "", fmt.Errorf("failed to generate jwt-id: %w", err)
 	}
 
-	claims := jwt.MapClaims(userClaims)
+	claims := jwt.MapClaims{}
+	if userClaims != nil {
+		claims = userClaims
+	}
 
 	//standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
 	claims["aud"] = g.privateClaims.audience //Audience
