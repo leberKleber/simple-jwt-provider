@@ -32,7 +32,7 @@ func TestNewGenerator(t *testing.T) {
 		t.Fatalf("failed to crreate new generator: %s", err)
 	}
 
-	generatedJWT, err := g.Generate("myMailAddress")
+	generatedJWT, err := g.Generate("myMailAddress", map[string]interface{}{"myCustomClaim": "mialc"})
 	if err != nil {
 		t.Fatalf("failed to generate jwt: %s", err)
 	}
@@ -69,9 +69,23 @@ func TestNewGenerator(t *testing.T) {
 		t.Error("jwt nbf has not been set")
 	}
 
+	expectedCustomClaim := "mialc"
+	if claims["myCustomClaim"] != expectedCustomClaim {
+		t.Errorf("unexpected email-privateClaim value. Expected: %q. Given: %q", expectedCustomClaim, claims["myCustomClaim"])
+	}
+
 	expectedJWTEMail := "myMailAddress"
 	if claims["email"] != expectedJWTEMail {
 		t.Errorf("unexpected email-privateClaim value. Expected: %q. Given: %q", expectedJWTEMail, claims["email"])
+	}
+}
+
+func TestNewGeneratorWithoutPrivateKey(t *testing.T) {
+	_, err := NewGenerator("", "audience", "issuer", "subject")
+
+	expectedError := errors.New("no valid private key found")
+	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
+		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
 	}
 }
 

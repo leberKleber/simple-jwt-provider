@@ -10,8 +10,9 @@ import (
 
 func (s *Server) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	requestBody := struct {
-		EMail    string `json:"email"`
-		Password string `json:"password"`
+		EMail    string                 `json:"email"`
+		Password string                 `json:"password"`
+		Claims   map[string]interface{} `json:"claims"`
 	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -30,7 +31,7 @@ func (s *Server) createUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.p.CreateUser(requestBody.EMail, requestBody.Password)
+	err = s.p.CreateUser(requestBody.EMail, requestBody.Password, requestBody.Claims)
 	if err != nil {
 		if errors.Is(err, internal.ErrUserAlreadyExists) {
 			writeError(w, http.StatusConflict, "User with given email already exists")

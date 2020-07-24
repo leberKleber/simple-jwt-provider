@@ -35,13 +35,15 @@ func New(templatesFolderPath, username, password, host string, port int, tlsInse
 	}, nil
 }
 
-func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetToken string) error {
+func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetToken string, claims map[string]interface{}) error {
 	mailData := struct {
 		EMail              string
 		PasswordResetToken string
+		Claims             map[string]interface{}
 	}{
 		EMail:              recipient,
 		PasswordResetToken: passwordResetToken,
+		Claims:             claims,
 	}
 
 	msg, err := m.templates[PasswordResetRequestTemplateName].Render(mailData)
