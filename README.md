@@ -1,8 +1,9 @@
 ![Go](https://github.com/leberKleber/simple-jwt-provider/workflows/Go/badge.svg?branch=master)
 
 # simple-jwt-provider
-Simple and lightweight JWT-Provider written in go (golang). It exhibit JWT for the in postgres
-persisted user, which can be managed via api. Also, a password-reset flow via mail verification is available 
+Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres
+persisted user, which can be managed via api. Also, a password-reset flow via mail verification is available.
+User specific custom-claims also available for jwt-generation and mail rendering.
 
 dockerized: https://hub.docker.com/r/leberkleber/simple-jwt-provider
 
@@ -15,7 +16,7 @@ docker-compose -f example/docker-compose.yml up
 ./example/create_user.sh test.test@test.test password
 
 # login with created user
-./example/login.sh test.test@test.test password
+./example/login.sh test.tscest@test.test password
 
 # reset password
 # 1) create password reset request
@@ -121,7 +122,10 @@ Request body:
 ```json
 {
     "email": "info@leberkleber.io",
-    "password": "s3cr3t"
+    "password": "s3cr3t",
+    "claims":  {
+        "myCustomClaim": "custom claims for jwt and mail templates"
+    }
 }
 ```
 
