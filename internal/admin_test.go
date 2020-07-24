@@ -13,6 +13,7 @@ func TestProvider_CreateUser(t *testing.T) {
 		name           string
 		givenEMail     string
 		givenPassword  string
+		givenClaims    map[string]interface{}
 		expectedError  error
 		dbExpectedUser storage.User //password not encrypted
 		dbReturnError  error
@@ -60,7 +61,7 @@ func TestProvider_CreateUser(t *testing.T) {
 				},
 			}
 
-			err := toTest.CreateUser(tt.givenEMail, tt.givenPassword)
+			err := toTest.CreateUser(tt.givenEMail, tt.givenPassword, tt.givenClaims)
 			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
 				t.Fatalf("Processing error is not as expected: \nExpected:%s\nGiven:%s", tt.expectedError, err)
 			}

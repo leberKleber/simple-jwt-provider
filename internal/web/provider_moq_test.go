@@ -27,7 +27,7 @@ var _ Provider = &ProviderMock{}
 //             CreatePasswordResetRequestFunc: func(email string) error {
 // 	               panic("mock out the CreatePasswordResetRequest method")
 //             },
-//             CreateUserFunc: func(email string, password string) error {
+//             CreateUserFunc: func(email string, password string, claims map[string]interface{}) error {
 // 	               panic("mock out the CreateUser method")
 //             },
 //             LoginFunc: func(email string, password string) (string, error) {
@@ -47,7 +47,7 @@ type ProviderMock struct {
 	CreatePasswordResetRequestFunc func(email string) error
 
 	// CreateUserFunc mocks the CreateUser method.
-	CreateUserFunc func(email string, password string) error
+	CreateUserFunc func(email string, password string, claims map[string]interface{}) error
 
 	// LoginFunc mocks the Login method.
 	LoginFunc func(email string, password string) (string, error)
@@ -68,6 +68,8 @@ type ProviderMock struct {
 			Email string
 			// Password is the password argument value.
 			Password string
+			// Claims is the claims argument value.
+			Claims map[string]interface{}
 		}
 		// Login holds details about calls to the Login method.
 		Login []struct {
@@ -120,21 +122,23 @@ func (mock *ProviderMock) CreatePasswordResetRequestCalls() []struct {
 }
 
 // CreateUser calls CreateUserFunc.
-func (mock *ProviderMock) CreateUser(email string, password string) error {
+func (mock *ProviderMock) CreateUser(email string, password string, claims map[string]interface{}) error {
 	if mock.CreateUserFunc == nil {
 		panic("ProviderMock.CreateUserFunc: method is nil but Provider.CreateUser was just called")
 	}
 	callInfo := struct {
 		Email    string
 		Password string
+		Claims   map[string]interface{}
 	}{
 		Email:    email,
 		Password: password,
+		Claims:   claims,
 	}
 	lockProviderMockCreateUser.Lock()
 	mock.calls.CreateUser = append(mock.calls.CreateUser, callInfo)
 	lockProviderMockCreateUser.Unlock()
-	return mock.CreateUserFunc(email, password)
+	return mock.CreateUserFunc(email, password, claims)
 }
 
 // CreateUserCalls gets all the calls that were made to CreateUser.
@@ -143,10 +147,12 @@ func (mock *ProviderMock) CreateUser(email string, password string) error {
 func (mock *ProviderMock) CreateUserCalls() []struct {
 	Email    string
 	Password string
+	Claims   map[string]interface{}
 } {
 	var calls []struct {
 		Email    string
 		Password string
+		Claims   map[string]interface{}
 	}
 	lockProviderMockCreateUser.RLock()
 	calls = mock.calls.CreateUser

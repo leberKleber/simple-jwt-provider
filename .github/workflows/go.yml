@@ -26,8 +26,11 @@ jobs:
             dep ensure
         fi
 
-    - name: Build
-      run: go test -v ./...
+    - name: Test
+      run:  go test -cover -count=1  ./...
+
+    - name: Vet
+      run: go vet ./...
 
     - name: Component-Tests
       run: ./component-tests.sh

@@ -21,7 +21,7 @@ var _ JWTGenerator = &JWTGeneratorMock{}
 //
 //         // make and configure a mocked JWTGenerator
 //         mockedJWTGenerator := &JWTGeneratorMock{
-//             GenerateFunc: func(email string) (string, error) {
+//             GenerateFunc: func(email string, userClaims map[string]interface{}) (string, error) {
 // 	               panic("mock out the Generate method")
 //             },
 //         }
@@ -32,7 +32,7 @@ var _ JWTGenerator = &JWTGeneratorMock{}
 //     }
 type JWTGeneratorMock struct {
 	// GenerateFunc mocks the Generate method.
-	GenerateFunc func(email string) (string, error)
+	GenerateFunc func(email string, userClaims map[string]interface{}) (string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -40,34 +40,40 @@ type JWTGeneratorMock struct {
 		Generate []struct {
 			// Email is the email argument value.
 			Email string
+			// UserClaims is the userClaims argument value.
+			UserClaims map[string]interface{}
 		}
 	}
 }
 
 // Generate calls GenerateFunc.
-func (mock *JWTGeneratorMock) Generate(email string) (string, error) {
+func (mock *JWTGeneratorMock) Generate(email string, userClaims map[string]interface{}) (string, error) {
 	if mock.GenerateFunc == nil {
 		panic("JWTGeneratorMock.GenerateFunc: method is nil but JWTGenerator.Generate was just called")
 	}
 	callInfo := struct {
-		Email string
+		Email      string
+		UserClaims map[string]interface{}
 	}{
-		Email: email,
+		Email:      email,
+		UserClaims: userClaims,
 	}
 	lockJWTGeneratorMockGenerate.Lock()
 	mock.calls.Generate = append(mock.calls.Generate, callInfo)
 	lockJWTGeneratorMockGenerate.Unlock()
-	return mock.GenerateFunc(email)
+	return mock.GenerateFunc(email, userClaims)
 }
 
 // GenerateCalls gets all the calls that were made to Generate.
 // Check the length with:
 //     len(mockedJWTGenerator.GenerateCalls())
 func (mock *JWTGeneratorMock) GenerateCalls() []struct {
-	Email string
+	Email      string
+	UserClaims map[string]interface{}
 } {
 	var calls []struct {
-		Email string
+		Email      string
+		UserClaims map[string]interface{}
 	}
 	lockJWTGeneratorMockGenerate.RLock()
 	calls = mock.calls.Generate

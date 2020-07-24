@@ -16,7 +16,7 @@ docker run --rm -e "WUC_EXPECTED=200" \
       -e "WUC_URL=http://simple-jwt-provider/v1/internal/alive" \
       -e "WUC_MAX_ITERATIONS=20" \
       --network "${networkName}" leberkleber/wait_until_curl
-      sjp_alive=$?
+sjp_alive=$?
 set -e
 
 if [[ "$sjp_alive" -ne 0 ]]; then

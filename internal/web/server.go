@@ -11,7 +11,7 @@ import (
 //go:generate moq -out provider_moq_test.go . Provider
 type Provider interface {
 	Login(email, password string) (string, error)
-	CreateUser(email, password string) error
+	CreateUser(email, password string, claims map[string]interface{}) error
 	CreatePasswordResetRequest(email string) error
 	ResetPassword(email, resetToken, password string) error
 }
