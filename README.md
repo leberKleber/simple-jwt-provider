@@ -1,4 +1,5 @@
 ![Go](https://github.com/leberKleber/simple-jwt-provider/workflows/Go/badge.svg?branch=master)
+![Coverage](coverage_badge.png)
 
 # simple-jwt-provider
 Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres
