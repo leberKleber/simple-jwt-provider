@@ -16,17 +16,17 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid JSON")
+		writeError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
 	if requestBody.EMail == "" {
-		writeError(w, http.StatusBadRequest, "EMail must be set")
+		writeError(w, http.StatusBadRequest, "email must be set")
 		return
 	}
 
 	if requestBody.Password == "" {
-		writeError(w, http.StatusBadRequest, "Password must be set")
+		writeError(w, http.StatusBadRequest, "password must be set")
 		return
 	}
 
@@ -34,12 +34,12 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, internal.ErrIncorrectPassword) || errors.Is(err, internal.ErrUserNotFound) {
 			logrus.WithField("email", requestBody.EMail).Warn("somebody tried to login with invalid credentials")
-			writeError(w, http.StatusBadRequest, "Invalid email or password")
+			writeError(w, http.StatusUnauthorized, "invalid credentials")
 			return
 		}
 
 		logrus.WithError(err).Error("Failed to login user")
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeInternalServerError(w)
 		return
 	}
 
@@ -50,7 +50,7 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		logrus.WithError(err).Error("Failed marshal request response")
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeInternalServerError(w)
 		return
 	}
 }
@@ -62,12 +62,12 @@ func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Requ
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid JSON")
+		writeError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
 	if requestBody.EMail == "" {
-		writeError(w, http.StatusBadRequest, "EMail must be set")
+		writeError(w, http.StatusBadRequest, "email must be set")
 		return
 	}
 
@@ -80,7 +80,7 @@ func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		logrus.WithError(err).Error("Failed to create password-reset-request")
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeInternalServerError(w)
 		return
 	}
 
@@ -97,22 +97,22 @@ func (s *Server) passwordResetHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid JSON")
+		writeError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
 	if requestBody.EMail == "" {
-		writeError(w, http.StatusBadRequest, "EMail must be set")
+		writeError(w, http.StatusBadRequest, "email must be set")
 		return
 	}
 
 	if requestBody.ResetToken == "" {
-		writeError(w, http.StatusBadRequest, "ResetToken must be set")
+		writeError(w, http.StatusBadRequest, "reset-token must be set")
 		return
 	}
 
 	if requestBody.Password == "" {
-		writeError(w, http.StatusBadRequest, "Password must be set")
+		writeError(w, http.StatusBadRequest, "password must be set")
 		return
 	}
 
@@ -123,7 +123,7 @@ func (s *Server) passwordResetHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		logrus.WithError(err).Error("Failed to create password-reset-request")
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeInternalServerError(w)
 		return
 	}
 

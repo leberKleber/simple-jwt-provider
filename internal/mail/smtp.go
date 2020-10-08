@@ -1,4 +1,4 @@
-package mailer
+package mail
 
 import (
 	"crypto/tls"
@@ -6,23 +6,28 @@ import (
 	"gopkg.in/mail.v2"
 )
 
+//go:generate moq -out dialer_moq_test.go . dialer
+type dialer interface {
+	DialAndSend(msgs ...*mail.Message) error
+	Dial() (mail.SendCloser, error)
+}
+
 type Mailer struct {
-	dialer    *mail.Dialer
+	dialer    dialer
 	templates map[string]Template
 }
 
 func New(templatesFolderPath, username, password, host string, port int, tlsInsecureSkipVerify bool, tlsServerName string) (*Mailer, error) {
-	d := mail.NewDialer(host, port, username, password)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: tlsInsecureSkipVerify, ServerName: tlsServerName}
+	d := buildDialer(username, password, host, port, tlsInsecureSkipVerify, tlsServerName)
 
 	//check connection and auth
 	rd, err := d.Dial()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to smtp server: %w", err)
 	}
-	defer rd.Close()
+	defer func() { _ = rd.Close() }()
 
-	pwRestTmpl, err := Load(templatesFolderPath, PasswordResetRequestTemplateName)
+	pwRestTmpl, err := load(templatesFolderPath, PasswordResetRequestTemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load password-reset tempate: %w", err)
 	}
@@ -33,6 +38,13 @@ func New(templatesFolderPath, username, password, host string, port int, tlsInse
 			PasswordResetRequestTemplateName: pwRestTmpl,
 		},
 	}, nil
+}
+
+func buildDialer(username string, password string, host string, port int, tlsInsecureSkipVerify bool, tlsServerName string) dialer {
+	d := mail.NewDialer(host, port, username, password)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: tlsInsecureSkipVerify, ServerName: tlsServerName}
+
+	return d
 }
 
 func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetToken string, claims map[string]interface{}) error {
