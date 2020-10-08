@@ -35,6 +35,14 @@ func (p Provider) CreateUser(email, password string, claims map[string]interface
 	return nil
 }
 
+/**
+Creates new user with given email, password and claims.
+return ErrUserAlreadyExists when user already exists
+*/
+func (p Provider) DeleteUser(email string) error {
+	return nil //TODO do it
+}
+
 func bcryptPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
 }

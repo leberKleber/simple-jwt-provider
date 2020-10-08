@@ -28,32 +28,27 @@ func (s *Storage) User(email string) (User, error) {
 	).Scan(&user.Password, &rawClaims)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, ErrUserNotFound
+			return User{}, ErrUserNotFound
 		}
 
-		return user, fmt.Errorf("failed to query user: %w", err)
+		return User{}, fmt.Errorf("failed to query user: %w", err)
 	}
 
 	err = json.Unmarshal(rawClaims, &user.Claims)
 	if err != nil {
-		return user, fmt.Errorf("failed to unmarshal user>claims: %w", err)
+		return User{}, fmt.Errorf("failed to unmarshal user>claims: %w", err)
 	}
 
 	return user, nil
 }
 
 func (s *Storage) CreateUser(u User) error {
-	stmt, err := s.db.Prepare("INSERT INTO users (email, password, claims) VALUES($1, $2, $3)")
-	if err != nil {
-		return fmt.Errorf("failed to prepare stmt: %w", err)
-	}
-
 	rawClaims, err := json.Marshal(u.Claims)
 	if err != nil {
 		return fmt.Errorf("failed to marhsal user>claims: %w", err)
 	}
 
-	_, err = stmt.Exec(u.EMail, u.Password, rawClaims)
+	_, err = s.db.Exec("INSERT INTO users (email, password, claims) VALUES($1, $2, $3);", u.EMail, u.Password, rawClaims)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok && pqErr.Constraint == "email_unique" {
@@ -66,24 +61,19 @@ func (s *Storage) CreateUser(u User) error {
 }
 
 func (s *Storage) UpdateUser(u User) error {
-	stmt, err := s.db.Prepare("UPDATE users SET password = $2, claims = $3 WHERE email = $1;")
-	if err != nil {
-		return fmt.Errorf("failed to prepare stmt: %w", err)
-	}
-
 	rawClaims, err := json.Marshal(u.Claims)
 	if err != nil {
 		return fmt.Errorf("failed to marhsal user>claims: %w", err)
 	}
 
-	res, err := stmt.Exec(u.EMail, u.Password, rawClaims)
+	res, err := s.db.Exec("UPDATE users SET password = $2, claims = $3 WHERE email = $1;", u.EMail, u.Password, rawClaims)
 	if err != nil {
 		return fmt.Errorf("failed to exec stmt: %w", err)
 	}
 
 	r, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get count of affected rows")
+		return fmt.Errorf("failed to get count of affected rows: %w", err)
 	}
 	if r == 0 {
 		return ErrUserNotFound

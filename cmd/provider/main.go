@@ -5,7 +5,7 @@ import (
 	"github.com/ardanlabs/conf"
 	"github.com/leberKleber/simple-jwt-provider/internal"
 	"github.com/leberKleber/simple-jwt-provider/internal/jwt"
-	"github.com/leberKleber/simple-jwt-provider/internal/mailer"
+	"github.com/leberKleber/simple-jwt-provider/internal/mail"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"github.com/leberKleber/simple-jwt-provider/internal/web"
 	"github.com/sirupsen/logrus"
@@ -39,7 +39,7 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to create jwt generator")
 	}
 
-	m, err := mailer.New(cfg.Mail.TemplatesFolderPath,
+	m, err := mail.New(cfg.Mail.TemplatesFolderPath,
 		cfg.Mail.SMTPUsername,
 		cfg.Mail.SMTPPassword,
 		cfg.Mail.SMTPHost,

@@ -1,4 +1,4 @@
-package mailer
+package mail
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ type Template struct {
 	headerTmpl *textTemplate.Template
 }
 
-func Load(path, name string) (Template, error) {
+func load(path, name string) (Template, error) {
 	htmlTmpl, err := htmlTemplate.ParseFiles(
 		filepath.Join(path, fmt.Sprintf("%s.html", name)),
 	)

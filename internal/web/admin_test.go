@@ -3,6 +3,8 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/leberKleber/simple-jwt-provider/internal"
 	"io/ioutil"
 	"net/http"
@@ -32,13 +34,19 @@ func TestCreateUserHandler(t *testing.T) {
 			name:                 "Missing email",
 			requestBody:          `{"password": "s3cr3t"}`,
 			expectedResponseCode: http.StatusBadRequest,
-			expectedResponseBody: `{"message":"EMail must be set"}`,
+			expectedResponseBody: `{"message":"email must be set"}`,
+		},
+		{
+			name:                 "Invalid JSON",
+			requestBody:          `{"passwords3cr3t"}`,
+			expectedResponseCode: http.StatusBadRequest,
+			expectedResponseBody: `{"message":"invalid JSON"}`,
 		},
 		{
 			name:                 "Missing password",
 			requestBody:          `{"email": "test.test@test.test"}`,
 			expectedResponseCode: http.StatusBadRequest,
-			expectedResponseBody: `{"message":"Password must be set"}`,
+			expectedResponseBody: `{"message":"password must be set"}`,
 		},
 		{
 			name:                 "User already exists",
@@ -47,7 +55,16 @@ func TestCreateUserHandler(t *testing.T) {
 			expectedEMail:        "test.test@test.test",
 			expectedPassword:     "s3cr3t",
 			expectedResponseCode: http.StatusConflict,
-			expectedResponseBody: `{"message":"User with given email already exists"}`,
+			expectedResponseBody: `{"message":"user with given email already exists"}`,
+		},
+		{
+			name:                 "Unexpected error",
+			requestBody:          `{"email": "test.test@test.test", "password": "s3cr3t"}`,
+			providerError:        errors.New("nope"),
+			expectedEMail:        "test.test@test.test",
+			expectedPassword:     "s3cr3t",
+			expectedResponseCode: http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"internal server error"}`,
 		},
 	}
 
@@ -111,6 +128,93 @@ func TestCreateUserHandler(t *testing.T) {
 				}
 
 				compactedRespBodyAsBytes = compactedRespBody.Bytes()
+			}
+
+			if !bytes.Equal(compactedRespBodyAsBytes, []byte(tt.expectedResponseBody)) {
+				t.Errorf("Request response body is not as expected. Expected: %q, Given: %q", tt.expectedResponseBody, string(compactedRespBodyAsBytes))
+			}
+		})
+	}
+}
+
+func TestDeleteUserHandler(t *testing.T) {
+	tests := []struct {
+		name                 string
+		providerError        error
+		requestEmail         string
+		expectedEncodedEmail string
+		expectedResponseBody string
+		expectedResponseCode int
+	}{
+		{
+			name:                 "Happycase",
+			requestEmail:         "info%40leberkleber.io",
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusNoContent,
+		},
+		{
+			name:                 "User not found",
+			requestEmail:         "info%40leberkleber.io",
+			providerError:        internal.ErrUserNotFound,
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusNotFound,
+			expectedResponseBody: `{"message":"user with given email doesnt already exists"}`,
+		},
+		{
+			name:                 "Error while deletion",
+			requestEmail:         "info%40leberkleber.io",
+			providerError:        errors.New("nope"),
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"internal server error"}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var givenEMail string
+
+			toTest := NewServer(&ProviderMock{
+				DeleteUserFunc: func(email string) error {
+					givenEMail = email
+					return tt.providerError
+				},
+			}, true, "username", "password")
+			testServer := httptest.NewServer(toTest.h)
+
+			req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/v1/admin/users/%s", testServer.URL, tt.requestEmail), nil)
+			if err != nil {
+				t.Fatalf("Failed to build http request: %s", err)
+			}
+			req.SetBasicAuth("username", "password")
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatalf("Failed to call server cause: %s", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.expectedResponseCode {
+				t.Errorf("Request respond with unexpected status code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
+			}
+
+			respBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("Failed to read response body: %s", err)
+			}
+			var compactedRespBodyAsBytes []byte
+			if resp.ContentLength > 0 {
+				compactedRespBody := &bytes.Buffer{}
+				err = json.Compact(compactedRespBody, respBody)
+				if err != nil {
+					t.Fatalf("Failed to compact json: %s", err)
+				}
+
+				compactedRespBodyAsBytes = compactedRespBody.Bytes()
+			}
+
+			if tt.expectedEncodedEmail != givenEMail {
+				t.Errorf("Unexpected delete email. Expected: %q, Given: %q", tt.expectedEncodedEmail, givenEMail)
 			}
 
 			if !bytes.Equal(compactedRespBodyAsBytes, []byte(tt.expectedResponseBody)) {

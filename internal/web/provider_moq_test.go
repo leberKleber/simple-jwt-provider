@@ -10,6 +10,7 @@ import (
 var (
 	lockProviderMockCreatePasswordResetRequest sync.RWMutex
 	lockProviderMockCreateUser                 sync.RWMutex
+	lockProviderMockDeleteUser                 sync.RWMutex
 	lockProviderMockLogin                      sync.RWMutex
 	lockProviderMockResetPassword              sync.RWMutex
 )
@@ -30,6 +31,9 @@ var _ Provider = &ProviderMock{}
 //             CreateUserFunc: func(email string, password string, claims map[string]interface{}) error {
 // 	               panic("mock out the CreateUser method")
 //             },
+//             DeleteUserFunc: func(email string) error {
+// 	               panic("mock out the DeleteUser method")
+//             },
 //             LoginFunc: func(email string, password string) (string, error) {
 // 	               panic("mock out the Login method")
 //             },
@@ -48,6 +52,9 @@ type ProviderMock struct {
 
 	// CreateUserFunc mocks the CreateUser method.
 	CreateUserFunc func(email string, password string, claims map[string]interface{}) error
+
+	// DeleteUserFunc mocks the DeleteUser method.
+	DeleteUserFunc func(email string) error
 
 	// LoginFunc mocks the Login method.
 	LoginFunc func(email string, password string) (string, error)
@@ -70,6 +77,11 @@ type ProviderMock struct {
 			Password string
 			// Claims is the claims argument value.
 			Claims map[string]interface{}
+		}
+		// DeleteUser holds details about calls to the DeleteUser method.
+		DeleteUser []struct {
+			// Email is the email argument value.
+			Email string
 		}
 		// Login holds details about calls to the Login method.
 		Login []struct {
@@ -157,6 +169,37 @@ func (mock *ProviderMock) CreateUserCalls() []struct {
 	lockProviderMockCreateUser.RLock()
 	calls = mock.calls.CreateUser
 	lockProviderMockCreateUser.RUnlock()
+	return calls
+}
+
+// DeleteUser calls DeleteUserFunc.
+func (mock *ProviderMock) DeleteUser(email string) error {
+	if mock.DeleteUserFunc == nil {
+		panic("ProviderMock.DeleteUserFunc: method is nil but Provider.DeleteUser was just called")
+	}
+	callInfo := struct {
+		Email string
+	}{
+		Email: email,
+	}
+	lockProviderMockDeleteUser.Lock()
+	mock.calls.DeleteUser = append(mock.calls.DeleteUser, callInfo)
+	lockProviderMockDeleteUser.Unlock()
+	return mock.DeleteUserFunc(email)
+}
+
+// DeleteUserCalls gets all the calls that were made to DeleteUser.
+// Check the length with:
+//     len(mockedProvider.DeleteUserCalls())
+func (mock *ProviderMock) DeleteUserCalls() []struct {
+	Email string
+} {
+	var calls []struct {
+		Email string
+	}
+	lockProviderMockDeleteUser.RLock()
+	calls = mock.calls.DeleteUser
+	lockProviderMockDeleteUser.RUnlock()
 	return calls
 }
 
