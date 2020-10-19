@@ -161,6 +161,14 @@ func TestDeleteUserHandler(t *testing.T) {
 			expectedResponseBody: `{"message":"user with given email doesnt already exists"}`,
 		},
 		{
+			name:                 "User still has tokens",
+			requestEmail:         "info%40leberkleber.io",
+			providerError:        internal.ErrUserStillHasTokens,
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusPreconditionRequired,
+			expectedResponseBody: `{"message":"user still has has tokens"}`,
+		},
+		{
 			name:                 "Error while deletion",
 			requestEmail:         "info%40leberkleber.io",
 			providerError:        errors.New("nope"),

@@ -12,6 +12,7 @@ var (
 	lockStorageMockCreateToken           sync.RWMutex
 	lockStorageMockCreateUser            sync.RWMutex
 	lockStorageMockDeleteToken           sync.RWMutex
+	lockStorageMockDeleteUser            sync.RWMutex
 	lockStorageMockTokensByEMailAndToken sync.RWMutex
 	lockStorageMockUpdateUser            sync.RWMutex
 	lockStorageMockUser                  sync.RWMutex
@@ -35,6 +36,9 @@ var _ Storage = &StorageMock{}
 //             },
 //             DeleteTokenFunc: func(id int64) error {
 // 	               panic("mock out the DeleteToken method")
+//             },
+//             DeleteUserFunc: func(email string) error {
+// 	               panic("mock out the DeleteUser method")
 //             },
 //             TokensByEMailAndTokenFunc: func(email string, token string) ([]storage.Token, error) {
 // 	               panic("mock out the TokensByEMailAndToken method")
@@ -61,6 +65,9 @@ type StorageMock struct {
 	// DeleteTokenFunc mocks the DeleteToken method.
 	DeleteTokenFunc func(id int64) error
 
+	// DeleteUserFunc mocks the DeleteUser method.
+	DeleteUserFunc func(email string) error
+
 	// TokensByEMailAndTokenFunc mocks the TokensByEMailAndToken method.
 	TokensByEMailAndTokenFunc func(email string, token string) ([]storage.Token, error)
 
@@ -86,6 +93,11 @@ type StorageMock struct {
 		DeleteToken []struct {
 			// ID is the id argument value.
 			ID int64
+		}
+		// DeleteUser holds details about calls to the DeleteUser method.
+		DeleteUser []struct {
+			// Email is the email argument value.
+			Email string
 		}
 		// TokensByEMailAndToken holds details about calls to the TokensByEMailAndToken method.
 		TokensByEMailAndToken []struct {
@@ -197,6 +209,37 @@ func (mock *StorageMock) DeleteTokenCalls() []struct {
 	lockStorageMockDeleteToken.RLock()
 	calls = mock.calls.DeleteToken
 	lockStorageMockDeleteToken.RUnlock()
+	return calls
+}
+
+// DeleteUser calls DeleteUserFunc.
+func (mock *StorageMock) DeleteUser(email string) error {
+	if mock.DeleteUserFunc == nil {
+		panic("StorageMock.DeleteUserFunc: method is nil but Storage.DeleteUser was just called")
+	}
+	callInfo := struct {
+		Email string
+	}{
+		Email: email,
+	}
+	lockStorageMockDeleteUser.Lock()
+	mock.calls.DeleteUser = append(mock.calls.DeleteUser, callInfo)
+	lockStorageMockDeleteUser.Unlock()
+	return mock.DeleteUserFunc(email)
+}
+
+// DeleteUserCalls gets all the calls that were made to DeleteUser.
+// Check the length with:
+//     len(mockedStorage.DeleteUserCalls())
+func (mock *StorageMock) DeleteUserCalls() []struct {
+	Email string
+} {
+	var calls []struct {
+		Email string
+	}
+	lockStorageMockDeleteUser.RLock()
+	calls = mock.calls.DeleteUser
+	lockStorageMockDeleteUser.RUnlock()
 	return calls
 }
 

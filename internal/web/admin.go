@@ -62,11 +62,11 @@ func (s *Server) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, internal.ErrUserNotFound) {
 			writeError(w, http.StatusNotFound, "user with given email doesnt already exists")
 			return
+		} else {
+			logrus.WithError(err).Error("Failed to delete user")
+			writeInternalServerError(w)
+			return
 		}
-
-		logrus.WithError(err).Error("Failed to delete user")
-		writeInternalServerError(w)
-		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)

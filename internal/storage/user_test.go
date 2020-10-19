@@ -117,7 +117,7 @@ func TestStorage_CreateUser(t *testing.T) {
 			expectedDBEMail:    "info@leberkleber.io",
 			expectedDBPassword: []byte("bcryptedPassword"),
 			expectedDBClaims:   []byte(`{"customClaim1":4711}`),
-			expectedError:      errors.New("failed to exec stmt: nope"),
+			expectedError:      errors.New("failed to exec create stmt: nope"),
 		},
 		{
 			name: "User already exists",
@@ -197,7 +197,7 @@ func TestStorage_UpdateUser(t *testing.T) {
 			expectedDBEMail:    "info@leberkleber.io",
 			expectedDBPassword: []byte("bcryptedPassword"),
 			expectedDBClaims:   []byte(`{"customClaim1":4711}`),
-			expectedError:      errors.New("failed to exec stmt: nope"),
+			expectedError:      errors.New("failed to exec update stmt: nope"),
 		},
 		{
 			name: "User already exists",
@@ -245,6 +245,91 @@ func TestStorage_UpdateUser(t *testing.T) {
 			s := Storage{db: db}
 
 			err = s.UpdateUser(tt.givenUser)
+			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
+				t.Errorf("Returned error is not as expected. Expected:\n%q\nGiven:\n%q", tt.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestStorage_DeleteUser(t *testing.T) {
+	tests := []struct {
+		name                  string
+		givenEMail            string
+		tokensDBResponseErr   error
+		tokensDBResult        driver.Result
+		usersDBResponseErr    error
+		usersDBResult         driver.Result
+		expectedTokensDBEMail string
+		expectedUsersDBEMail  string
+		expectedError         error
+	}{
+		{
+			name:                  "Happycase",
+			givenEMail:            "info@leberkleber.io",
+			tokensDBResult:        sqlmock.NewResult(0, 5),
+			usersDBResult:         sqlmock.NewResult(0, 1),
+			expectedTokensDBEMail: "info@leberkleber.io",
+			expectedUsersDBEMail:  "info@leberkleber.io",
+		},
+		{
+			name:                  "Unexpected tokens db error",
+			givenEMail:            "info@leberkleber.io",
+			tokensDBResponseErr:   errors.New("nope"),
+			expectedTokensDBEMail: "info@leberkleber.io",
+			expectedError:         errors.New("failed to exec delete tokens from user stmt: nope"),
+		},
+		{
+			name:                  "Unexpected user db error",
+			givenEMail:            "info@leberkleber.io",
+			tokensDBResult:        sqlmock.NewResult(0, 5),
+			usersDBResponseErr:    errors.New("nope"),
+			expectedTokensDBEMail: "info@leberkleber.io",
+			expectedUsersDBEMail:  "info@leberkleber.io",
+			expectedError:         errors.New("failed to exec delete user stmt: nope"),
+		},
+		{
+			name:                  "User doesn't exist",
+			givenEMail:            "info@leberkleber.io",
+			tokensDBResult:        sqlmock.NewResult(0, 0),
+			usersDBResult:         sqlmock.NewResult(0, 0),
+			expectedTokensDBEMail: "info@leberkleber.io",
+			expectedUsersDBEMail:  "info@leberkleber.io",
+			expectedError:         ErrUserNotFound,
+		},
+		{
+			name:                  "Could not get could of affected rows",
+			givenEMail:            "info@leberkleber.io",
+			tokensDBResult:        sqlmock.NewResult(0, 0),
+			usersDBResult:         sqlmock.NewErrorResult(errors.New("a random error")),
+			expectedTokensDBEMail: "info@leberkleber.io",
+			expectedUsersDBEMail:  "info@leberkleber.io",
+			expectedError:         errors.New("failed to get count of affected rows: a random error"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				t.Fatal("Failed to create sql mock", err)
+			}
+
+			mock.
+				ExpectExec(`DELETE FROM tokens WHERE email = \$1;`).
+				WithArgs(tt.expectedTokensDBEMail).
+				WillReturnError(tt.tokensDBResponseErr).
+				WillReturnResult(tt.tokensDBResult)
+
+			mock.
+				ExpectExec(`DELETE FROM users WHERE email = \$1;`).
+				WithArgs(tt.expectedUsersDBEMail).
+				WillReturnError(tt.usersDBResponseErr).
+				WillReturnResult(tt.usersDBResult)
+
+			s := Storage{db: db}
+
+			err = s.DeleteUser(tt.givenEMail)
 			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
 				t.Errorf("Returned error is not as expected. Expected:\n%q\nGiven:\n%q", tt.expectedError, err)
 			}

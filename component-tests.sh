@@ -20,7 +20,7 @@ sjp_alive=$?
 set -e
 
 if [[ "$sjp_alive" -ne 0 ]]; then
-  echo "provider didn't start succesfull"
+  echo "provider didn't start successfully"
   test_result=1
 else
   set +e

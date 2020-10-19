@@ -8,7 +8,7 @@ import (
 )
 
 var bcryptCost = 12
-var ErrUserAlreadyExists = fmt.Errorf("user already exists")
+var ErrUserAlreadyExists = errors.New("user already exists")
 
 /**
 Creates new user with given email, password and claims.
@@ -35,12 +35,20 @@ func (p Provider) CreateUser(email, password string, claims map[string]interface
 	return nil
 }
 
-/**
-Creates new user with given email, password and claims.
-return ErrUserAlreadyExists when user already exists
-*/
+// DeleteUser deletes user with given email.
+// return ErrUserNotFound when user does not exist
+// return ErrUserStillHasTokens when user still has tokens
 func (p Provider) DeleteUser(email string) error {
-	return nil //TODO do it
+	err := p.Storage.DeleteUser(email)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return ErrUserNotFound
+		} else {
+			return fmt.Errorf("failed to delete user with email %q: %w", email, err)
+		}
+	}
+
+	return nil
 }
 
 func bcryptPassword(password string) ([]byte, error) {
