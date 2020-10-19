@@ -39,7 +39,7 @@ func TestLoginHandler(t *testing.T) {
 			expectedResponseBody: `{"message":"invalid JSON"}`,
 		},
 		{
-			name:                 "Missing EMail",
+			name:                 "Missing Recipient",
 			requestBody:          `{"password": "s3cr3t"}`,
 			providerToken:        "myNewJWT",
 			expectedResponseCode: http.StatusBadRequest,
