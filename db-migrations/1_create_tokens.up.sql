@@ -6,5 +6,5 @@ CREATE TABLE tokens
     type       text        NOT NULL,
     created_at timestamptz NOT NULL,
     CONSTRAINT id_unique PRIMARY KEY (id),
-    CONSTRAINT tokens_email_fkey FOREIGN KEY (email) REFERENCES  users(email)
+    CONSTRAINT tokens_email_fkey FOREIGN KEY (email) REFERENCES users(email)
 );

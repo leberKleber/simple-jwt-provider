@@ -117,7 +117,7 @@ Response (200 - OK)
 
 
 ### POST `/v1/admin/users`
-This endpoint will create an new user if admin api auth was successfully:
+This endpoint will create a new user if admin api auth was successfully:
 
 Request body:
 ```json
@@ -131,3 +131,8 @@ Request body:
 ```
 
 Response body (201 - CREATED)
+
+### DELETE `/v1/admin/users/{email}`
+This endpoint will delete the user with the given email, when there are no tokens which referred to this user:
+
+Response body (201 - NO CONTENT)
