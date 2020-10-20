@@ -4,6 +4,7 @@
 package web
 
 import (
+	"github.com/leberKleber/simple-jwt-provider/internal"
 	"sync"
 )
 
@@ -11,6 +12,7 @@ var (
 	lockProviderMockCreatePasswordResetRequest sync.RWMutex
 	lockProviderMockCreateUser                 sync.RWMutex
 	lockProviderMockDeleteUser                 sync.RWMutex
+	lockProviderMockGetUser                    sync.RWMutex
 	lockProviderMockLogin                      sync.RWMutex
 	lockProviderMockResetPassword              sync.RWMutex
 )
@@ -28,11 +30,14 @@ var _ Provider = &ProviderMock{}
 //             CreatePasswordResetRequestFunc: func(email string) error {
 // 	               panic("mock out the CreatePasswordResetRequest method")
 //             },
-//             CreateUserFunc: func(email string, password string, claims map[string]interface{}) error {
+//             CreateUserFunc: func(User internal.User) error {
 // 	               panic("mock out the CreateUser method")
 //             },
 //             DeleteUserFunc: func(email string) error {
 // 	               panic("mock out the DeleteUser method")
+//             },
+//             GetUserFunc: func(email string) (internal.User, error) {
+// 	               panic("mock out the GetUser method")
 //             },
 //             LoginFunc: func(email string, password string) (string, error) {
 // 	               panic("mock out the Login method")
@@ -51,10 +56,13 @@ type ProviderMock struct {
 	CreatePasswordResetRequestFunc func(email string) error
 
 	// CreateUserFunc mocks the CreateUser method.
-	CreateUserFunc func(email string, password string, claims map[string]interface{}) error
+	CreateUserFunc func(user internal.User) error
 
 	// DeleteUserFunc mocks the DeleteUser method.
 	DeleteUserFunc func(email string) error
+
+	// GetUserFunc mocks the GetUser method.
+	GetUserFunc func(email string) (internal.User, error)
 
 	// LoginFunc mocks the Login method.
 	LoginFunc func(email string, password string) (string, error)
@@ -71,15 +79,16 @@ type ProviderMock struct {
 		}
 		// CreateUser holds details about calls to the CreateUser method.
 		CreateUser []struct {
-			// Email is the email argument value.
-			Email string
-			// Password is the password argument value.
-			Password string
-			// Claims is the claims argument value.
-			Claims map[string]interface{}
+			// User is the User argument value.
+			User internal.User
 		}
 		// DeleteUser holds details about calls to the DeleteUser method.
 		DeleteUser []struct {
+			// Email is the email argument value.
+			Email string
+		}
+		// GetUser holds details about calls to the GetUser method.
+		GetUser []struct {
 			// Email is the email argument value.
 			Email string
 		}
@@ -134,37 +143,29 @@ func (mock *ProviderMock) CreatePasswordResetRequestCalls() []struct {
 }
 
 // CreateUser calls CreateUserFunc.
-func (mock *ProviderMock) CreateUser(email string, password string, claims map[string]interface{}) error {
+func (mock *ProviderMock) CreateUser(user internal.User) error {
 	if mock.CreateUserFunc == nil {
 		panic("ProviderMock.CreateUserFunc: method is nil but Provider.CreateUser was just called")
 	}
 	callInfo := struct {
-		Email    string
-		Password string
-		Claims   map[string]interface{}
+		User internal.User
 	}{
-		Email:    email,
-		Password: password,
-		Claims:   claims,
+		User: user,
 	}
 	lockProviderMockCreateUser.Lock()
 	mock.calls.CreateUser = append(mock.calls.CreateUser, callInfo)
 	lockProviderMockCreateUser.Unlock()
-	return mock.CreateUserFunc(email, password, claims)
+	return mock.CreateUserFunc(user)
 }
 
 // CreateUserCalls gets all the calls that were made to CreateUser.
 // Check the length with:
 //     len(mockedProvider.CreateUserCalls())
 func (mock *ProviderMock) CreateUserCalls() []struct {
-	Email    string
-	Password string
-	Claims   map[string]interface{}
+	User internal.User
 } {
 	var calls []struct {
-		Email    string
-		Password string
-		Claims   map[string]interface{}
+		User internal.User
 	}
 	lockProviderMockCreateUser.RLock()
 	calls = mock.calls.CreateUser
@@ -200,6 +201,37 @@ func (mock *ProviderMock) DeleteUserCalls() []struct {
 	lockProviderMockDeleteUser.RLock()
 	calls = mock.calls.DeleteUser
 	lockProviderMockDeleteUser.RUnlock()
+	return calls
+}
+
+// GetUser calls GetUserFunc.
+func (mock *ProviderMock) GetUser(email string) (internal.User, error) {
+	if mock.GetUserFunc == nil {
+		panic("ProviderMock.GetUserFunc: method is nil but Provider.GetUser was just called")
+	}
+	callInfo := struct {
+		Email string
+	}{
+		Email: email,
+	}
+	lockProviderMockGetUser.Lock()
+	mock.calls.GetUser = append(mock.calls.GetUser, callInfo)
+	lockProviderMockGetUser.Unlock()
+	return mock.GetUserFunc(email)
+}
+
+// GetUserCalls gets all the calls that were made to GetUser.
+// Check the length with:
+//     len(mockedProvider.GetUserCalls())
+func (mock *ProviderMock) GetUserCalls() []struct {
+	Email string
+} {
+	var calls []struct {
+		Email string
+	}
+	lockProviderMockGetUser.RLock()
+	calls = mock.calls.GetUser
+	lockProviderMockGetUser.RUnlock()
 	return calls
 }
 

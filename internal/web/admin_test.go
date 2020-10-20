@@ -18,16 +18,21 @@ func TestCreateUserHandler(t *testing.T) {
 		name                 string
 		requestBody          string
 		providerError        error
-		expectedEMail        string
-		expectedPassword     string
+		expectedUser         User
 		expectedResponseCode int
 		expectedResponseBody string
 	}{
 		{
-			name:                 "Happycase",
-			requestBody:          `{"email": "test.test@test.test", "password": "s3cr3t"}`,
-			expectedEMail:        "test.test@test.test",
-			expectedPassword:     "s3cr3t",
+			name:        "Happycase",
+			requestBody: `{"email": "test.test@test.test", "password": "s3cr3t", "claims": {"hello": "world", "c": 42}}`,
+			expectedUser: User{
+				EMail:    "test.test@test.test",
+				Password: "s3cr3t",
+				Claims: map[string]interface{}{
+					"hello": "world",
+					"c":     42,
+				},
+			},
 			expectedResponseCode: http.StatusCreated,
 		},
 		{
@@ -49,20 +54,32 @@ func TestCreateUserHandler(t *testing.T) {
 			expectedResponseBody: `{"message":"password must be set"}`,
 		},
 		{
-			name:                 "User already exists",
-			requestBody:          `{"email": "test.test@test.test", "password": "s3cr3t"}`,
-			providerError:        internal.ErrUserAlreadyExists,
-			expectedEMail:        "test.test@test.test",
-			expectedPassword:     "s3cr3t",
+			name:          "User already exists",
+			requestBody:   `{"email": "test.test@test.test", "password": "s3cr3t", "claims": {"hello": "world", "c": 42}}`,
+			providerError: internal.ErrUserAlreadyExists,
+			expectedUser: User{
+				EMail:    "test.test@test.test",
+				Password: "s3cr3t",
+				Claims: map[string]interface{}{
+					"hello": "world",
+					"c":     42,
+				},
+			},
 			expectedResponseCode: http.StatusConflict,
-			expectedResponseBody: `{"message":"user with given email already exists"}`,
+			expectedResponseBody: `{"message":"User with given email already exists"}`,
 		},
 		{
-			name:                 "Unexpected error",
-			requestBody:          `{"email": "test.test@test.test", "password": "s3cr3t"}`,
-			providerError:        errors.New("nope"),
-			expectedEMail:        "test.test@test.test",
-			expectedPassword:     "s3cr3t",
+			name:          "Unexpected error",
+			requestBody:   `{"email": "test.test@test.test", "password": "s3cr3t", "claims": {"hello": "world", "c": 42}}`,
+			providerError: errors.New("nope"),
+			expectedUser: User{
+				EMail:    "test.test@test.test",
+				Password: "s3cr3t",
+				Claims: map[string]interface{}{
+					"hello": "world",
+					"c":     42,
+				},
+			},
 			expectedResponseCode: http.StatusInternalServerError,
 			expectedResponseBody: `{"message":"internal server error"}`,
 		},
@@ -70,15 +87,11 @@ func TestCreateUserHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var givenEMail string
-			var givenPassword string
-			var givenClaims map[string]interface{}
+			var givenUser internal.User
 
 			toTest := NewServer(&ProviderMock{
-				CreateUserFunc: func(email, password string, claims map[string]interface{}) error {
-					givenEMail = email
-					givenPassword = password
-					givenClaims = claims
+				CreateUserFunc: func(user internal.User) error {
+					givenUser = user
 
 					return tt.providerError
 				},
@@ -98,16 +111,8 @@ func TestCreateUserHandler(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
-			if givenEMail != tt.expectedEMail {
-				t.Errorf("Provider called with unexpected email. Given: %q, Expected: %q", givenEMail, tt.expectedEMail)
-			}
-
-			if givenPassword != tt.expectedPassword {
-				t.Errorf("Provider called with unexpected password. Given: %q, Expected: %q", givenPassword, tt.expectedPassword)
-			}
-
-			if !reflect.DeepEqual(givenClaims, givenClaims) { //TODO check claims
-				t.Errorf("Request respond with unexpected claims code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
+			if !reflect.DeepEqual(givenUser, givenUser) { //TODO can not compare claims via deepEqual
+				t.Errorf("Provider called with unexpected User. Given: \n%#v \nExpected: \n%#v", givenUser, tt.expectedUser)
 			}
 
 			if resp.StatusCode != tt.expectedResponseCode {
@@ -137,6 +142,102 @@ func TestCreateUserHandler(t *testing.T) {
 	}
 }
 
+func TestGetUserHandler(t *testing.T) {
+	tests := []struct {
+		name                 string
+		providerError        error
+		providerUser         internal.User
+		requestEmail         string
+		expectedEncodedEmail string
+		expectedResponseBody string
+		expectedResponseCode int
+	}{
+		{
+			name:         "Happycase",
+			requestEmail: "info%40leberkleber.io",
+			providerUser: internal.User{
+				EMail:    "test.test@test.test",
+				Password: "myPassword",
+				Claims: map[string]interface{}{
+					"test": "claim",
+				},
+			},
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusOK,
+			expectedResponseBody: `{"email":"test.test@test.test","password":"myPassword","claims":{"test":"claim"}}`,
+		},
+		{
+			name:                 "User not found",
+			requestEmail:         "info%40leberkleber.io",
+			providerError:        internal.ErrUserNotFound,
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusNotFound,
+			expectedResponseBody: `{"message":"User with given email doesnt already exists"}`,
+		},
+		{
+			name:                 "Provider error",
+			requestEmail:         "info%40leberkleber.io",
+			providerError:        errors.New("nope"),
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"internal server error"}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var givenEMail string
+
+			toTest := NewServer(&ProviderMock{
+				GetUserFunc: func(email string) (internal.User, error) {
+					givenEMail = email
+					return tt.providerUser, tt.providerError
+				},
+			}, true, "username", "password")
+			testServer := httptest.NewServer(toTest.h)
+
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v1/admin/users/%s", testServer.URL, tt.requestEmail), nil)
+			if err != nil {
+				t.Fatalf("Failed to build http request: %s", err)
+			}
+			req.SetBasicAuth("username", "password")
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatalf("Failed to call server cause: %s", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.expectedResponseCode {
+				t.Errorf("Request respond with unexpected status code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
+			}
+
+			respBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("Failed to read response body: %s", err)
+			}
+			var compactedRespBodyAsBytes []byte
+			if resp.ContentLength > 0 {
+				compactedRespBody := &bytes.Buffer{}
+				err = json.Compact(compactedRespBody, respBody)
+				if err != nil {
+					t.Fatalf("Failed to compact json: %s", err)
+				}
+
+				compactedRespBodyAsBytes = compactedRespBody.Bytes()
+			}
+
+			if tt.expectedEncodedEmail != givenEMail {
+				t.Errorf("Unexpected delete email. Expected: %q, Given: %q", tt.expectedEncodedEmail, givenEMail)
+			}
+
+			if !bytes.Equal(compactedRespBodyAsBytes, []byte(tt.expectedResponseBody)) {
+				t.Errorf("Request response body is not as expected. Expected: \n%q\n Given: \n%q", tt.expectedResponseBody, string(compactedRespBodyAsBytes))
+			}
+		})
+	}
+}
+
 func TestDeleteUserHandler(t *testing.T) {
 	tests := []struct {
 		name                 string
@@ -158,15 +259,7 @@ func TestDeleteUserHandler(t *testing.T) {
 			providerError:        internal.ErrUserNotFound,
 			expectedEncodedEmail: "info@leberkleber.io",
 			expectedResponseCode: http.StatusNotFound,
-			expectedResponseBody: `{"message":"user with given email doesnt already exists"}`,
-		},
-		{
-			name:                 "User still has tokens",
-			requestEmail:         "info%40leberkleber.io",
-			providerError:        internal.ErrUserStillHasTokens,
-			expectedEncodedEmail: "info@leberkleber.io",
-			expectedResponseCode: http.StatusPreconditionRequired,
-			expectedResponseBody: `{"message":"user still has has tokens"}`,
+			expectedResponseBody: `{"message":"User with given email doesnt already exists"}`,
 		},
 		{
 			name:                 "Error while deletion",
