@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/leberKleber/simple-jwt-provider/internal"
 	"github.com/leberKleber/simple-jwt-provider/internal/web/middleware"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -11,10 +12,11 @@ import (
 //go:generate moq -out provider_moq_test.go . Provider
 type Provider interface {
 	Login(email, password string) (string, error)
-	CreateUser(email, password string, claims map[string]interface{}) error
-	DeleteUser(email string) error
 	CreatePasswordResetRequest(email string) error
 	ResetPassword(email, resetToken, password string) error
+	CreateUser(user internal.User) error
+	GetUser(email string) (internal.User, error)
+	DeleteUser(email string) error
 }
 
 type Server struct {
@@ -39,6 +41,7 @@ func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPasswo
 		adminAPI.Use(middleware.BasicAuth(adminAPIUsername, adminAPIPassword))
 
 		adminAPI.Path("/users").Methods(http.MethodPost).HandlerFunc(s.createUserHandler)
+		adminAPI.Path("/users/{email}").Methods(http.MethodGet).HandlerFunc(s.getUserHandler)
 		adminAPI.Path("/users/{email}").Methods(http.MethodDelete).HandlerFunc(s.deleteUserHandler)
 	}
 

@@ -133,6 +133,20 @@ Request body:
 Response body (201 - CREATED)
 
 ### DELETE `/v1/admin/users/{email}`
-This endpoint will delete the user with the given email, when there are no tokens which referred to this user:
+This endpoint will delete the user with the given email when there are no tokens which referred to this user and the admin api auth was successfully:
 
 Response body (201 - NO CONTENT)
+
+### GET `/v1/admin/users/{email}`
+This endpoint will return the user with the given email when the admin api auth was successfully:
+
+Response body (200 - NO CONTENT)
+```json
+{
+    "email": "info@leberkleber.io",
+    "password": "**********",
+    "claims":  {
+        "myCustomClaim": "custom claims for jwt and mail templates"
+    }
+}
+```

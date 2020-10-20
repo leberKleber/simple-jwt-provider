@@ -38,7 +38,7 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		logrus.WithError(err).Error("Failed to login user")
+		logrus.WithError(err).Error("Failed to login User")
 		writeInternalServerError(w)
 		return
 	}
@@ -74,7 +74,7 @@ func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Requ
 	err = s.p.CreatePasswordResetRequest(requestBody.EMail)
 	if err != nil {
 		if errors.Is(err, internal.ErrUserNotFound) {
-			logrus.WithField("email", requestBody.EMail).Warn("somebody tried to create a reset-password-request for non existing user")
+			logrus.WithField("email", requestBody.EMail).Warn("somebody tried to create a reset-password-request for non existing User")
 			w.WriteHeader(http.StatusCreated)
 			return
 		}
