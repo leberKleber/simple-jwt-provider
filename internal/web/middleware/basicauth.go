@@ -25,8 +25,8 @@ func BasicAuth(username, password string) func(h http.Handler) http.Handler {
 }
 
 func unauthorized(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusUnauthorized)
-	_, err := w.Write([]byte(`{"message": "Unauthorized"}`))
+	w.WriteHeader(http.StatusForbidden)
+	_, err := w.Write([]byte(`{"message": "forbidden"}`))
 	if err != nil {
 		logrus.WithError(err).Error("Failed to write unauthorized http response body")
 	}

@@ -11,7 +11,8 @@ import (
 )
 
 type Storage struct {
-	db *sql.DB
+	db     *sql.DB
+	dbName string
 }
 
 func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (*Storage, error) {
@@ -24,7 +25,8 @@ func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (*Sto
 	}
 
 	return &Storage{
-		db: db,
+		db:     db,
+		dbName: dbName,
 	}, nil
 }
 
@@ -34,7 +36,7 @@ func (s Storage) Migrate(dbMigrationsPath string) error {
 		return fmt.Errorf("failed to create driver for database schema migration: %w", err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", dbMigrationsPath), "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", dbMigrationsPath), s.dbName, driver)
 	if err != nil {
 		return fmt.Errorf("failed to create a migrate object for database schema migration: %w", err)
 	}

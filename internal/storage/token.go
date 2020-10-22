@@ -32,16 +32,17 @@ func (s Storage) CreateToken(t Token) (int64, error) {
 }
 
 func (s Storage) TokensByEMailAndToken(email, token string) ([]Token, error) {
-	rows, err := s.db.Query("SELECT id, type, created_at FROM tokens WHERE email = $1 AND token = $2", email, token)
+	rows, err := s.db.Query("SELECT id, type, created_at FROM tokens WHERE email = $1 AND token = $2;", email, token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to exec select-token-stmt: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var tokens []Token
 	for rows.Next() {
 		t := Token{
 			Token: token,
+			EMail: email,
 		}
 		err := rows.Scan(&t.ID, &t.Type, &t.CreatedAt)
 		if err != nil {

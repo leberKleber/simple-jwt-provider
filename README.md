@@ -1,4 +1,5 @@
 ![Go](https://github.com/leberKleber/simple-jwt-provider/workflows/Go/badge.svg?branch=master)
+![Coverage](coverage_badge.png)
 
 # simple-jwt-provider
 Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres
@@ -22,6 +23,7 @@ docker-compose -f example/docker-compose.yml up
 # 1) create password reset request
 #    - mail with reset token would be send
 # 2) reset password with received token
+# 3) do crud operations on user
 
 # 1) create password reset request 
 ./example/create_password-reset-request.sh test.test@test.test
@@ -30,6 +32,9 @@ docker-compose -f example/docker-compose.yml up
 ./example/reset-password.sh test.test@test.test newPassword {reset-token}
 # verify new password
 ./example/login.sh test.test@test.test newPassword
+
+# 3) do crud operations on user
+# see ./example/*.sh
 
 ```
 
@@ -116,7 +121,7 @@ Response (200 - OK)
 
 
 ### POST `/v1/admin/users`
-This endpoint will create an new user if admin api auth was successfully:
+This endpoint will create a new user if admin api auth was successfully:
 
 Request body:
 ```json
@@ -130,3 +135,33 @@ Request body:
 ```
 
 Response body (201 - CREATED)
+
+### PUT `/v1/admin/users/{email}`
+This endpoint will update the given properties (excluding email) of the user with the given email when the admin api auth was successfully:
+
+Request body:
+```json
+{
+    "password": "n3wS3cr3t",
+    "claims":  {
+        "updatedClaim": "now updated"
+    }
+}
+```
+
+Response body (200 - NO CONTENT)
+```json
+{
+    "email": "info@leberkleber.io",
+    "password": "**********",
+    "claims":  {
+        "updatedClaim": "now updated"
+    }
+}
+```
+
+### DELETE `/v1/admin/users/{email}`
+This endpoint will delete the user with the given email when there are no tokens which referred to this user and the admin api auth was successfully:
+
+Response body (201 - NO CONTENT)
+
