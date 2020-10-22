@@ -87,6 +87,54 @@ func (s *Server) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) {
+	email, err := url.PathUnescape(mux.Vars(r)["email"])
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "could not unescape email")
+		return
+	}
+
+	//when email has not been set 'notFoundHandler' handler will be used
+
+	var user User
+	err = json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+
+	if user.EMail != "" {
+		writeError(w, http.StatusBadRequest, "email can not be changed")
+		return
+	}
+
+	updatedUser, err := s.p.UpdateUser(email, internal.User{
+		Password: user.Password,
+		Claims:   user.Claims,
+	})
+	if err != nil {
+		if errors.Is(err, internal.ErrUserNotFound) {
+			writeError(w, http.StatusNotFound, "User with given email doesn't exists")
+			return
+		} else {
+			logrus.WithError(err).Error("Failed to update User")
+			writeInternalServerError(w)
+			return
+		}
+	}
+
+	err = json.NewEncoder(w).Encode(User{
+		EMail:    updatedUser.EMail,
+		Password: updatedUser.Password,
+		Claims:   updatedUser.Claims,
+	})
+	if err != nil {
+		logrus.WithError(err).Error("Failed to encode User")
+		writeInternalServerError(w)
+		return
+	}
+}
+
 func (s *Server) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	email, err := url.PathUnescape(mux.Vars(r)["email"])
 	if err != nil {

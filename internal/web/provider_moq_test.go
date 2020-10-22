@@ -15,6 +15,7 @@ var (
 	lockProviderMockGetUser                    sync.RWMutex
 	lockProviderMockLogin                      sync.RWMutex
 	lockProviderMockResetPassword              sync.RWMutex
+	lockProviderMockUpdateUser                 sync.RWMutex
 )
 
 // Ensure, that ProviderMock does implement Provider.
@@ -30,7 +31,7 @@ var _ Provider = &ProviderMock{}
 //             CreatePasswordResetRequestFunc: func(email string) error {
 // 	               panic("mock out the CreatePasswordResetRequest method")
 //             },
-//             CreateUserFunc: func(User internal.User) error {
+//             CreateUserFunc: func(user internal.User) error {
 // 	               panic("mock out the CreateUser method")
 //             },
 //             DeleteUserFunc: func(email string) error {
@@ -44,6 +45,9 @@ var _ Provider = &ProviderMock{}
 //             },
 //             ResetPasswordFunc: func(email string, resetToken string, password string) error {
 // 	               panic("mock out the ResetPassword method")
+//             },
+//             UpdateUserFunc: func(email string, user internal.User) (internal.User, error) {
+// 	               panic("mock out the UpdateUser method")
 //             },
 //         }
 //
@@ -70,6 +74,9 @@ type ProviderMock struct {
 	// ResetPasswordFunc mocks the ResetPassword method.
 	ResetPasswordFunc func(email string, resetToken string, password string) error
 
+	// UpdateUserFunc mocks the UpdateUser method.
+	UpdateUserFunc func(email string, user internal.User) (internal.User, error)
+
 	// calls tracks calls to the methods.
 	calls struct {
 		// CreatePasswordResetRequest holds details about calls to the CreatePasswordResetRequest method.
@@ -79,7 +86,7 @@ type ProviderMock struct {
 		}
 		// CreateUser holds details about calls to the CreateUser method.
 		CreateUser []struct {
-			// User is the User argument value.
+			// User is the user argument value.
 			User internal.User
 		}
 		// DeleteUser holds details about calls to the DeleteUser method.
@@ -107,6 +114,13 @@ type ProviderMock struct {
 			ResetToken string
 			// Password is the password argument value.
 			Password string
+		}
+		// UpdateUser holds details about calls to the UpdateUser method.
+		UpdateUser []struct {
+			// Email is the email argument value.
+			Email string
+			// User is the user argument value.
+			User internal.User
 		}
 	}
 }
@@ -306,5 +320,40 @@ func (mock *ProviderMock) ResetPasswordCalls() []struct {
 	lockProviderMockResetPassword.RLock()
 	calls = mock.calls.ResetPassword
 	lockProviderMockResetPassword.RUnlock()
+	return calls
+}
+
+// UpdateUser calls UpdateUserFunc.
+func (mock *ProviderMock) UpdateUser(email string, user internal.User) (internal.User, error) {
+	if mock.UpdateUserFunc == nil {
+		panic("ProviderMock.UpdateUserFunc: method is nil but Provider.UpdateUser was just called")
+	}
+	callInfo := struct {
+		Email string
+		User  internal.User
+	}{
+		Email: email,
+		User:  user,
+	}
+	lockProviderMockUpdateUser.Lock()
+	mock.calls.UpdateUser = append(mock.calls.UpdateUser, callInfo)
+	lockProviderMockUpdateUser.Unlock()
+	return mock.UpdateUserFunc(email, user)
+}
+
+// UpdateUserCalls gets all the calls that were made to UpdateUser.
+// Check the length with:
+//     len(mockedProvider.UpdateUserCalls())
+func (mock *ProviderMock) UpdateUserCalls() []struct {
+	Email string
+	User  internal.User
+} {
+	var calls []struct {
+		Email string
+		User  internal.User
+	}
+	lockProviderMockUpdateUser.RLock()
+	calls = mock.calls.UpdateUser
+	lockProviderMockUpdateUser.RUnlock()
 	return calls
 }

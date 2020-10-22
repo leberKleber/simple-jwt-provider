@@ -15,6 +15,7 @@ type Provider interface {
 	CreatePasswordResetRequest(email string) error
 	ResetPassword(email, resetToken, password string) error
 	CreateUser(user internal.User) error
+	UpdateUser(email string, user internal.User) (internal.User, error)
 	GetUser(email string) (internal.User, error)
 	DeleteUser(email string) error
 }
@@ -42,6 +43,7 @@ func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPasswo
 
 		adminAPI.Path("/users").Methods(http.MethodPost).HandlerFunc(s.createUserHandler)
 		adminAPI.Path("/users/{email}").Methods(http.MethodGet).HandlerFunc(s.getUserHandler)
+		adminAPI.Path("/users/{email}").Methods(http.MethodPut).HandlerFunc(s.updateUserHandler)
 		adminAPI.Path("/users/{email}").Methods(http.MethodDelete).HandlerFunc(s.deleteUserHandler)
 	}
 
