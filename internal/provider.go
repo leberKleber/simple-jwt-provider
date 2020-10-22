@@ -9,6 +9,7 @@ type Storage interface {
 	User(email string) (storage.User, error)
 	CreateUser(user storage.User) error
 	UpdateUser(user storage.User) error
+	DeleteUser(email string) error
 	CreateToken(t storage.Token) (int64, error)
 	TokensByEMailAndToken(email, token string) ([]storage.Token, error)
 	DeleteToken(id int64) error

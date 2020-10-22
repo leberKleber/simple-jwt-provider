@@ -81,8 +81,9 @@ func TestBasicAuth(t *testing.T) {
 
 			if tt.expectedUnauthorizedResponseHeader {
 				response := w.Result()
-				if response.StatusCode != http.StatusUnauthorized {
-					t.Errorf("Unexpected response code. Given: %d, Expected: 401", w.Code)
+				expectedStatusCode := http.StatusForbidden
+				if response.StatusCode != expectedStatusCode {
+					t.Errorf("Unexpected response code. Given: %d, Expected: %d", w.Code, expectedStatusCode)
 				}
 
 				body, err := ioutil.ReadAll(response.Body)
