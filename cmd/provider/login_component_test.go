@@ -20,7 +20,10 @@ func TestLogin(t *testing.T) {
 	password := "s3cr3t"
 
 	createUser(t, email, password)
-	token := loginUser(t, email, password)
+	token, authorized := loginUser(t, email, password)
+	if !authorized {
+		t.Fatal("could not login user")
+	}
 
 	claims := validateJWT(t, token)
 	expectedJWTAudience := "<audience>"
@@ -111,7 +114,8 @@ func decodeECDSApubKey(pemEncodedPub string) (*ecdsa.PublicKey, error) {
 	return publicKey, nil
 }
 
-func loginUser(t *testing.T, email, password string) string {
+func loginUser(t *testing.T, email, password string) (string, bool) {
+	t.Helper()
 	resp, err := http.Post(
 		"http://simple-jwt-provider/v1/auth/login",
 		"application/json",
@@ -132,9 +136,12 @@ func loginUser(t *testing.T, email, password string) string {
 		t.Fatalf("Failed to read response body: %s", err)
 	}
 
+	if resp.StatusCode == http.StatusUnauthorized {
+		return "", false
+	}
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Invalid response status code. Expected: %d, Given: %d, Body: %s", http.StatusOK, resp.StatusCode, responseBody.ErrorMessage)
 	}
 
-	return responseBody.AccessToken
+	return responseBody.AccessToken, true
 }
