@@ -1,5 +1,6 @@
 ![Go](https://github.com/leberKleber/simple-jwt-provider/workflows/Go/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/leberKleber/simple-jwt-provider)](https://goreportcard.com/report/github.com/leberKleber/simple-jwt-provider)
+[![codecov](https://codecov.io/gh/leberKleber/simple-jwt-provider/branch/master/graph/badge.svg)](https://codecov.io/gh/leberKleber/simple-jwt-provider)
 
 # simple-jwt-provider
 Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres
