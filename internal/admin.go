@@ -7,9 +7,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const blankedPassword = "**********"
-
 var bcryptCost = 12
+var blankedPassword = "**********"
 var ErrUserAlreadyExists = errors.New("user already exists")
 
 type User struct {
@@ -43,6 +42,8 @@ func (p Provider) CreateUser(user User) error {
 	return nil
 }
 
+// GetUser returns a user with the given email.
+// return ErrUserNotFound when user does not exist
 func (p Provider) GetUser(email string) (User, error) {
 	user, err := p.Storage.User(email)
 	if err != nil {
@@ -57,6 +58,46 @@ func (p Provider) GetUser(email string) (User, error) {
 		EMail:    user.EMail,
 		Password: blankedPassword,
 		Claims:   user.Claims,
+	}, nil
+}
+
+// UpdateUser updates user with given email.
+// return ErrUserNotFound when user does not exist
+func (p Provider) UpdateUser(email string, user User) (User, error) {
+	dbUser, err := p.Storage.User(email)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return User{}, ErrUserNotFound
+		} else {
+			return User{}, fmt.Errorf("failed to find user to update: %w", err)
+		}
+	}
+
+	if user.Password != "" {
+		bcryptedPassword, err := bcryptPassword(user.Password)
+		if err != nil {
+			return User{}, fmt.Errorf("failed to bcrypt new password: %w", err)
+		}
+		dbUser.Password = bcryptedPassword
+	}
+
+	if user.Claims != nil {
+		dbUser.Claims = user.Claims
+	}
+
+	err = p.Storage.UpdateUser(dbUser)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return User{}, ErrUserNotFound
+		} else {
+			return User{}, fmt.Errorf("failed to update user: %w", err)
+		}
+	}
+
+	return User{
+		EMail:    dbUser.EMail,
+		Password: blankedPassword,
+		Claims:   dbUser.Claims,
 	}, nil
 }
 

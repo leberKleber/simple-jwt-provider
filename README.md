@@ -23,6 +23,7 @@ docker-compose -f example/docker-compose.yml up
 # 1) create password reset request
 #    - mail with reset token would be send
 # 2) reset password with received token
+# 3) do crud operations on user
 
 # 1) create password reset request 
 ./example/create_password-reset-request.sh test.test@test.test
@@ -31,6 +32,9 @@ docker-compose -f example/docker-compose.yml up
 ./example/reset-password.sh test.test@test.test newPassword {reset-token}
 # verify new password
 ./example/login.sh test.test@test.test newPassword
+
+# 3) do crud operations on user
+# see ./example/*.sh
 
 ```
 
@@ -132,13 +136,18 @@ Request body:
 
 Response body (201 - CREATED)
 
-### DELETE `/v1/admin/users/{email}`
-This endpoint will delete the user with the given email when there are no tokens which referred to this user and the admin api auth was successfully:
+### PUT `/v1/admin/users/{email}`
+This endpoint will update the given properties (excluding email) of the user with the given email when the admin api auth was successfully:
 
-Response body (201 - NO CONTENT)
-
-### GET `/v1/admin/users/{email}`
-This endpoint will return the user with the given email when the admin api auth was successfully:
+Request body:
+```json
+{
+    "password": "n3wS3cr3t",
+    "claims":  {
+        "updatedClaim": "now updated"
+    }
+}
+```
 
 Response body (200 - NO CONTENT)
 ```json
@@ -146,7 +155,13 @@ Response body (200 - NO CONTENT)
     "email": "info@leberkleber.io",
     "password": "**********",
     "claims":  {
-        "myCustomClaim": "custom claims for jwt and mail templates"
+        "updatedClaim": "now updated"
     }
 }
 ```
+
+### DELETE `/v1/admin/users/{email}`
+This endpoint will delete the user with the given email when there are no tokens which referred to this user and the admin api auth was successfully:
+
+Response body (201 - NO CONTENT)
+
