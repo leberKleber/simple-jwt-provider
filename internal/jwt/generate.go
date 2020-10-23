@@ -50,6 +50,9 @@ func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Gener
 	}, err
 }
 
+// Generate generates a valid jwt based on the Generator.privateKey. The jwt is issued to the given email and enriched
+// with the given claims.
+// 'userClaims' can be contain all json compatible types
 func (g Generator) Generate(email string, userClaims map[string]interface{}) (string, error) {
 	now := nowFunc()
 	jwtID, err := uuid.NewRandom()

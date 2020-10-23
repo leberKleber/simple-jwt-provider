@@ -14,11 +14,9 @@ var ErrUserNotFound = errors.New("user not found")
 var ErrNoValidTokenFound = errors.New("no valid token found")
 var nowFunc = time.Now
 
-/**
-Check email / password combination and return a new jwt if correct.
-return ErrIncorrectPassword when password is incorrect
-return UserNotFoundErr when user not found
-*/
+// Login checks email / password combination and return a new jwt if correct.
+// return ErrIncorrectPassword when password is incorrect
+// return ErrUserNotFound when user not found
 func (p Provider) Login(email, password string) (string, error) {
 	u, err := p.Storage.User(email)
 	if err != nil {
@@ -36,10 +34,8 @@ func (p Provider) Login(email, password string) (string, error) {
 	return p.JWTGenerator.Generate(email, u.Claims)
 }
 
-/**
-CreatePasswordResetRequest send a password-reset-request email to the give address.
-return ErrUserNotFound when user does not exists
-*/
+// CreatePasswordResetRequest send a password-reset-request email to the give address.
+// return ErrUserNotFound when user does not exists
 func (p Provider) CreatePasswordResetRequest(email string) error {
 	u, err := p.Storage.User(email)
 	if err != nil {
@@ -72,9 +68,7 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 	return nil
 }
 
-/**
-ResetPassword resets the password of the given account if the reset token is correct.
-*/
+// ResetPassword resets the password of the given account if the reset token is correct.
 func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
 	tokens, err := p.Storage.TokensByEMailAndToken(email, resetToken)
 	if err != nil {

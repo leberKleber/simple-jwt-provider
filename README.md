@@ -9,8 +9,23 @@ User specific custom-claims also available for jwt-generation and mail rendering
 
 dockerized: https://hub.docker.com/r/leberkleber/simple-jwt-provider
 
+# Table of contents
+ - [Try it](#try-it)
+ - [Getting started](#getting-started)
+   - [Generate ECDSA-512 key pair](#generate-ecdsa-512-key-pair)
+   - [Configuration](#configuration)
+ - [API](#api)
+   - [POST `/v1/auth/login`](#post-v1authlogin)
+   - [POST `/v1/auth/password-reset-request`](#post-v1authpassword-reset-request)
+   - [POST `/v1/auth/password-reset`](#post-v1authpassword-reset)
+   - [POST `/v1/admin/users`](#post-v1adminusers)
+   - [PUT `/v1/admin/users/{email}`](#put-v1adminusersemail)
+   - [DELETE `/v1/admin/users/{email}`](#delete-v1adminusersemail)
+ - [Development](#development)
+   - [mocks](#mocks)
+   
 ## Try it
-```bash
+```shell script
 git clone git@github.com:leberKleber/simple-jwt-provider.git
 docker-compose -f example/docker-compose.yml up
 
@@ -36,7 +51,6 @@ docker-compose -f example/docker-compose.yml up
 
 # 3) do crud operations on user
 # see ./example/*.sh
-
 ```
 
 ## Getting started
@@ -166,3 +180,10 @@ This endpoint will delete the user with the given email when there are no tokens
 
 Response body (201 - NO CONTENT)
 
+## Development
+### mocks
+Mocks will be generated with github.com/matryer/moq. Execute the following for generation:
+```shell script
+go get github.com/matryer/moq
+go generate ./...
+```
