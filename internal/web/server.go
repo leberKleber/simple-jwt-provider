@@ -25,6 +25,7 @@ type Server struct {
 	p Provider
 }
 
+// NewServer returns a Server instance with configure http routs
 func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPassword string) *Server {
 	s := &Server{}
 	r := mux.NewRouter()
@@ -52,6 +53,7 @@ func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPasswo
 	return s
 }
 
+// ListenAndServe wraps http.ListenAndServe
 func (s *Server) ListenAndServe(address string) error {
 	return http.ListenAndServe(address, s.h)
 }

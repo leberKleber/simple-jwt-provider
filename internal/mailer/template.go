@@ -10,11 +10,11 @@ import (
 	textTemplate "text/template"
 )
 
+const passwordResetRequestTemplateName = "password-reset-request"
+
 var htmlTemplateParseFiles = htmlTemplate.ParseFiles
 var textTemplateParseFiles = textTemplate.ParseFiles
 var ymlTemplateParseFiles = textTemplate.ParseFiles
-
-var PasswordResetRequestTemplateName = "password-reset-request"
 
 type mailTemplate struct {
 	name       string

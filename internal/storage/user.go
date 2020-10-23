@@ -8,6 +8,7 @@ import (
 	"github.com/lib/pq"
 )
 
+// User is the representation of a user for use in storage
 type User struct {
 	EMail    string
 	Password []byte
@@ -17,6 +18,9 @@ type User struct {
 var ErrUserNotFound = errors.New("could not found user")
 var ErrUserAlreadyExists = errors.New("user already exists")
 
+// CreateUser persists the given user in database
+// return ErrUserNotFound when user not found
+// return ErrUserAlreadyExists when user already exists
 func (s *Storage) CreateUser(u User) error {
 	rawClaims, err := json.Marshal(u.Claims)
 	if err != nil {
@@ -35,6 +39,8 @@ func (s *Storage) CreateUser(u User) error {
 	return nil
 }
 
+// User finds the user identified by email
+// return ErrUserNotFound when user not found
 func (s *Storage) User(email string) (User, error) {
 	user := User{
 		EMail: email,
@@ -60,6 +66,8 @@ func (s *Storage) User(email string) (User, error) {
 	return user, nil
 }
 
+// UpdateUser updates all properties (excluding email) from the given user which will be identified by email
+// return ErrUserNotFound when user not found
 func (s *Storage) UpdateUser(u User) error {
 	rawClaims, err := json.Marshal(u.Claims)
 	if err != nil {
@@ -82,13 +90,20 @@ func (s *Storage) UpdateUser(u User) error {
 	return nil
 }
 
+// DeleteUser deletes the user with the given email and all corresponding tokes in one transaction.
+// return ErrUserNotFound when user not found
 func (s *Storage) DeleteUser(email string) error {
-	_, err := s.db.Exec("DELETE FROM tokens WHERE email = $1;", email)
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin delete transaction: %w", err)
+	}
+
+	_, err = tx.Exec("DELETE FROM tokens WHERE email = $1;", email)
 	if err != nil {
 		return fmt.Errorf("failed to exec delete tokens from user stmt: %w", err)
 	}
 
-	resp, err := s.db.Exec("DELETE FROM users WHERE email = $1;", email)
+	resp, err := tx.Exec("DELETE FROM users WHERE email = $1;", email)
 	if err != nil {
 		return fmt.Errorf("failed to exec delete user stmt: %w", err)
 	}
@@ -99,6 +114,11 @@ func (s *Storage) DeleteUser(email string) error {
 	}
 	if ra == 0 {
 		return ErrUserNotFound
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit delete transaction: %w", err)
 	}
 
 	return nil

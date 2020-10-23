@@ -10,6 +10,7 @@ import (
 	"net/url"
 )
 
+// User is the representation of a user for use in web
 type User struct {
 	EMail    string                 `json:"email"`
 	Password string                 `json:"password"`
@@ -68,11 +69,11 @@ func (s *Server) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, internal.ErrUserNotFound) {
 			writeError(w, http.StatusNotFound, "User with given email doesn't exists")
 			return
-		} else {
-			logrus.WithError(err).Error("Failed to get User")
-			writeInternalServerError(w)
-			return
 		}
+
+		logrus.WithError(err).Error("Failed to get User")
+		writeInternalServerError(w)
+		return
 	}
 
 	err = json.NewEncoder(w).Encode(User{
@@ -116,11 +117,11 @@ func (s *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, internal.ErrUserNotFound) {
 			writeError(w, http.StatusNotFound, "User with given email doesn't exists")
 			return
-		} else {
-			logrus.WithError(err).Error("Failed to update User")
-			writeInternalServerError(w)
-			return
 		}
+
+		logrus.WithError(err).Error("Failed to update User")
+		writeInternalServerError(w)
+		return
 	}
 
 	err = json.NewEncoder(w).Encode(User{
@@ -149,11 +150,11 @@ func (s *Server) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, internal.ErrUserNotFound) {
 			writeError(w, http.StatusNotFound, "User with given email doesnt already exists")
 			return
-		} else {
-			logrus.WithError(err).Error("Failed to delete User")
-			writeInternalServerError(w)
-			return
 		}
+
+		logrus.WithError(err).Error("Failed to delete User")
+		writeInternalServerError(w)
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)

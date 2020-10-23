@@ -69,6 +69,7 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 }
 
 // ResetPassword resets the password of the given account if the reset token is correct.
+// return ErrNoValidTokenFound no valid token could be found
 func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
 	tokens, err := p.Storage.TokensByEMailAndToken(email, resetToken)
 	if err != nil {

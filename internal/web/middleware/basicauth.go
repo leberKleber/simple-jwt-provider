@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+// BasicAuth builds a basic auth http.Handler middleware which blocks all unauthorized request and respond with a
+// http status 403
 func BasicAuth(username, password string) func(h http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

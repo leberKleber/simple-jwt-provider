@@ -4,21 +4,37 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
+
+var postgresWithInstance = postgres.WithInstance
+var migrateNewWithDatabaseInstance = func(sourceURL string, databaseName string, databaseInstance database.Driver) (migration, error) {
+	m, e := migrate.NewWithDatabaseInstance(sourceURL, databaseName, databaseInstance)
+	return m, e
+}
 
 type Storage struct {
 	db     *sql.DB
 	dbName string
 }
 
-func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (*Storage, error) {
+//go:generate moq -out migration_moq_test.go . migration
+type migration interface {
+	Up() error
+}
+
+// New opens a new sql connection with the given configuration with a connection timeout of 30
+func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string, sslModeEnabled bool) (*Storage, error) {
+	sslMode := "disable"
+	if sslModeEnabled {
+		sslMode = "enable"
+	}
+
 	db, err := sql.Open(
 		"postgres",
-		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable connect_timeout=30", dbHost, dbPort, dbUsername, dbPassword, dbName),
+		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s connect_timeout=30", dbHost, dbPort, dbUsername, dbPassword, dbName, sslMode),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
@@ -33,14 +49,14 @@ func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (*Sto
 // Migrate executes all sql migration files from the configures db-migrations folder. Should always be called before
 // start
 func (s Storage) Migrate(dbMigrationsPath string) error {
-	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
+	driver, err := postgresWithInstance(s.db, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to create driver for database schema migration: %w", err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", dbMigrationsPath), s.dbName, driver)
+	m, err := migrateNewWithDatabaseInstance(fmt.Sprintf("file://%s", dbMigrationsPath), s.dbName, driver)
 	if err != nil {
-		return fmt.Errorf("failed to create a migrate object for database schema migration: %w", err)
+		return fmt.Errorf("failed to create a migrate for database schema migration: %w", err)
 	}
 
 	err = m.Up()
@@ -56,6 +72,7 @@ func (s Storage) Migrate(dbMigrationsPath string) error {
 	return nil
 }
 
+// Close warps sql.DB.Close
 func (s Storage) Close() error {
 	return s.db.Close()
 }

@@ -24,6 +24,8 @@ type Generator struct {
 	}
 }
 
+// NewGenerator a Generator instance with the given jwt-configuration. Before instantiation the private key will be
+// checked and parsed
 func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Generator, error) {
 	privateKey = strings.Replace(privateKey, `\n`, "\n", -1) //TODO fix me (needed for start via ide)
 	blockPrv, _ := pem.Decode([]byte(privateKey))
