@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var ErrNoTokenHasBeenDeleted = errors.New("no token has been deleted")
+var ErrTokenNotFound = errors.New("no token has been deleted")
 
 const TokenTypeReset string = "reset"
 
@@ -18,6 +18,7 @@ type Token struct {
 	CreatedAt time.Time
 }
 
+// CreateToken persists the given token in database. EMail must match to a users email.
 func (s Storage) CreateToken(t Token) (int64, error) {
 	var id int64
 	err := s.db.QueryRow(
@@ -31,6 +32,7 @@ func (s Storage) CreateToken(t Token) (int64, error) {
 	return id, nil
 }
 
+// TokensByEMailAndToken finds all tokens which matches the given email and token.
 func (s Storage) TokensByEMailAndToken(email, token string) ([]Token, error) {
 	rows, err := s.db.Query("SELECT id, type, created_at FROM tokens WHERE email = $1 AND token = $2;", email, token)
 	if err != nil {
@@ -55,6 +57,8 @@ func (s Storage) TokensByEMailAndToken(email, token string) ([]Token, error) {
 	return tokens, nil
 }
 
+// DeleteToken deletes token with the given ID.
+// return ErrTokenNotFound there is no token with the given ID
 func (s Storage) DeleteToken(id int64) error {
 	res, err := s.db.Exec("DELETE FROM tokens WHERE id = $1", id)
 	if err != nil {
@@ -66,7 +70,7 @@ func (s Storage) DeleteToken(id int64) error {
 		return fmt.Errorf("could not get num of affected row: %w", err)
 	}
 	if i != 1 {
-		return ErrNoTokenHasBeenDeleted
+		return ErrTokenNotFound
 	}
 
 	return nil

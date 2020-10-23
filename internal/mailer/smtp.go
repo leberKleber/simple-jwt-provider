@@ -32,6 +32,9 @@ var buildDialer = func(username string, password string, host string, port int, 
 	return d
 }
 
+// New creates a Mailer instance with the given smtp-configuration. Before instantiation a dial tests the configuration
+// and all available templates will be parsed.
+// 'tlsServerName' is only required if 'tlsInsecureSkipVerify' is false.
 func New(templatesFolderPath, username, password, host string, port int, tlsInsecureSkipVerify bool, tlsServerName string) (*Mailer, error) {
 	d := buildDialer(username, password, host, port, tlsInsecureSkipVerify, tlsServerName)
 
@@ -42,7 +45,7 @@ func New(templatesFolderPath, username, password, host string, port int, tlsInse
 	}
 	defer func() { _ = sc.Close() }()
 
-	pwRestTmpl, err := loadTemplates(templatesFolderPath, PasswordResetRequestTemplateName)
+	pwRestTmpl, err := loadTemplates(templatesFolderPath, passwordResetRequestTemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load password-reset mailTemplate: %w", err)
 	}
@@ -50,11 +53,13 @@ func New(templatesFolderPath, username, password, host string, port int, tlsInse
 	return &Mailer{
 		dialer: d,
 		templates: map[string]template{
-			PasswordResetRequestTemplateName: pwRestTmpl,
+			passwordResetRequestTemplateName: pwRestTmpl,
 		},
 	}, nil
 }
 
+// SendPasswordResetRequestEMail sends a password-reset-request mail to the given recipient. 'passwordResetToken' and
+// 'claims' can be used in mail-templates.
 func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetToken string, claims map[string]interface{}) error {
 	mailData := struct {
 		Recipient          string
@@ -66,9 +71,9 @@ func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetToken str
 		Claims:             claims,
 	}
 
-	tpl, found := m.templates[PasswordResetRequestTemplateName]
+	tpl, found := m.templates[passwordResetRequestTemplateName]
 	if !found {
-		return fmt.Errorf("could not found mailTemplate with name %q", PasswordResetRequestTemplateName)
+		return fmt.Errorf("could not found mailTemplate with name %q", passwordResetRequestTemplateName)
 	}
 
 	msg, err := tpl.Render(mailData)

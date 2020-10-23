@@ -194,7 +194,7 @@ func TestStorage_DeleteToken(t *testing.T) {
 			givenID:          5561,
 			expectedDBID:     5561,
 			dbResponseResult: sqlmock.NewResult(0, 0),
-			expectedErr:      ErrNoTokenHasBeenDeleted,
+			expectedErr:      ErrTokenNotFound,
 		},
 	}
 

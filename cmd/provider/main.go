@@ -9,6 +9,11 @@ import (
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"github.com/leberKleber/simple-jwt-provider/internal/web"
 	"github.com/sirupsen/logrus"
+
+	// database migration
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	// sql driver
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -24,7 +29,7 @@ func main() {
 	fmt.Print(cfgAsString)
 	logrus.Infof("Starting provider")
 
-	s, err := storage.New(cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Name)
+	s, err := storage.New(cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Name, false)
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not create storage")
 	}

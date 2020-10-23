@@ -11,6 +11,7 @@ var bcryptCost = 12
 var blankedPassword = "**********"
 var ErrUserAlreadyExists = errors.New("user already exists")
 
+// User is the representation of a user for use in internal
 type User struct {
 	EMail    string
 	Password string
@@ -47,9 +48,9 @@ func (p Provider) GetUser(email string) (User, error) {
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return User{}, ErrUserNotFound
-		} else {
-			return User{}, fmt.Errorf("failed to delete user with email %q: %w", email, err)
 		}
+
+		return User{}, fmt.Errorf("failed to delete user with email %q: %w", email, err)
 	}
 
 	return User{
@@ -66,9 +67,9 @@ func (p Provider) UpdateUser(email string, user User) (User, error) {
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return User{}, ErrUserNotFound
-		} else {
-			return User{}, fmt.Errorf("failed to find user to update: %w", err)
 		}
+
+		return User{}, fmt.Errorf("failed to find user to update: %w", err)
 	}
 
 	if user.Password != "" {
@@ -87,9 +88,9 @@ func (p Provider) UpdateUser(email string, user User) (User, error) {
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return User{}, ErrUserNotFound
-		} else {
-			return User{}, fmt.Errorf("failed to update user: %w", err)
 		}
+
+		return User{}, fmt.Errorf("failed to update user: %w", err)
 	}
 
 	return User{
@@ -107,9 +108,9 @@ func (p Provider) DeleteUser(email string) error {
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return ErrUserNotFound
-		} else {
-			return fmt.Errorf("failed to delete user with email %q: %w", email, err)
 		}
+
+		return fmt.Errorf("failed to delete user with email %q: %w", email, err)
 	}
 
 	return nil

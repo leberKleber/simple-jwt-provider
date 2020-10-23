@@ -315,6 +315,8 @@ func TestStorage_DeleteUser(t *testing.T) {
 				t.Fatal("Failed to create sql mock", err)
 			}
 
+			mock.ExpectBegin()
+
 			mock.
 				ExpectExec(`DELETE FROM tokens WHERE email = \$1;`).
 				WithArgs(tt.expectedTokensDBEMail).
@@ -326,6 +328,10 @@ func TestStorage_DeleteUser(t *testing.T) {
 				WithArgs(tt.expectedUsersDBEMail).
 				WillReturnError(tt.usersDBResponseErr).
 				WillReturnResult(tt.usersDBResult)
+
+			if tt.expectedError == nil {
+				mock.ExpectCommit()
+			}
 
 			s := Storage{db: db}
 
