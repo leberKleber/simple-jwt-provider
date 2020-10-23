@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+var confUsage = conf.Usage
+
 type config struct {
 	ServerAddress string `conf:"help:Server-address network-interface to bind on e.g.: '127.0.0.1:8080',default:0.0.0.0:80"`
 	JWT           struct {
@@ -45,7 +47,7 @@ func newConfig() (config, error) {
 	cfg := config{}
 
 	if origErr := conf.Parse(os.Environ(), "SJP", &cfg); origErr != nil {
-		usage, err := conf.Usage("SJP", &cfg)
+		usage, err := confUsage("SJP", &cfg)
 		if err != nil {
 			return cfg, err
 		}

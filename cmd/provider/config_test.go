@@ -86,20 +86,9 @@ func TestNewConfig(t *testing.T) {
 	fieldEqual(t, "mail>tls>serverName", cfg.Mail.TLS.ServerName, mailTLSServerName)
 }
 
-func setEnv(t *testing.T, key, value string) {
-	err := os.Setenv(key, value)
-	if err != nil {
-		t.Fatalf("failed to set env variable %q cause: %s", key, err)
-	}
-}
-
-func fieldEqual(t *testing.T, name string, cfgValue, expectedValue interface{}) {
-	if !reflect.DeepEqual(cfgValue, expectedValue) {
-		t.Errorf("unexpected cfg-value in field %q. Given: %s, Expected: %s", name, cfgValue, expectedValue)
-	}
-}
-
 func TestNewConfigWithAdminAPIConstraint(t *testing.T) {
+	cleanupEnvs(t)
+
 	setEnv(t, "SJP_SERVER_ADDRESS", "leberKleber.io")
 	setEnv(t, "SJP_JWT_PRIVATE_KEY", "myJWTKey")
 	setEnv(t, "SJP_JWT_AUDIENCE", "myJWTAudience")
@@ -138,6 +127,86 @@ func TestNewConfigWithAdminAPIConstraint(t *testing.T) {
 	_, err = newConfig()
 	expectedError = errors.New("admin-api-password and admin-api-username must be set if api has been enabled")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
-
+		t.Fatalf("returned error is not as expected. Expected:\n%s\nGiven:\n%s", expectedError, err)
 	}
+
+	cleanupEnvs(t)
+}
+
+func TestNewConfigCfgLibErrorHandling(t *testing.T) {
+	cleanupEnvs(t)
+
+	// PrivateKey cfg must be set but is not
+	_, err := newConfig()
+
+	expectedError := errors.New("required field PrivateKey is missing value")
+	if fmt.Sprint(expectedError) != fmt.Sprint(err) {
+		t.Fatalf("returned error is not as expected. Expected:\n%s\nGiven:\n%s", expectedError, err)
+	}
+}
+
+func TestNewConfigUnableToGenerateUsage(t *testing.T) {
+	oldConfigUsage := confUsage
+	defer func() {
+		confUsage = oldConfigUsage
+	}()
+
+	confUsage = func(namespace string, v interface{}) (string, error) {
+		return "", errors.New("failed to generate usage")
+	}
+
+	cleanupEnvs(t)
+
+	// PrivateKey cfg must be set but is not
+	_, err := newConfig()
+
+	expectedError := errors.New("failed to generate usage")
+	if fmt.Sprint(expectedError) != fmt.Sprint(err) {
+		t.Fatalf("returned error is not as expected. Expected:\n%s\nGiven:\n%s", expectedError, err)
+	}
+
+}
+
+func setEnv(t *testing.T, key, value string) {
+	err := os.Setenv(key, value)
+	if err != nil {
+		t.Fatalf("failed to set env variable %q cause: %s", key, err)
+	}
+}
+
+func unsetEnv(t *testing.T, key string) {
+	err := os.Unsetenv(key)
+	if err != nil {
+		t.Fatalf("failed to unset env variable %q cause: %s", key, err)
+	}
+}
+
+func fieldEqual(t *testing.T, name string, cfgValue, expectedValue interface{}) {
+	if !reflect.DeepEqual(cfgValue, expectedValue) {
+		t.Errorf("unexpected cfg-value in field %q. Given: %s, Expected: %s", name, cfgValue, expectedValue)
+	}
+}
+
+func cleanupEnvs(t *testing.T) {
+	unsetEnv(t, "SJP_SERVER_ADDRESS")
+	unsetEnv(t, "SJP_JWT_PRIVATE_KEY")
+	unsetEnv(t, "SJP_JWT_AUDIENCE")
+	unsetEnv(t, "SJP_JWT_ISSUER")
+	unsetEnv(t, "SJP_JWT_SUBJECT")
+	unsetEnv(t, "SJP_DB_HOST")
+	unsetEnv(t, "SJP_DB_PORT")
+	unsetEnv(t, "SJP_DB_NAME")
+	unsetEnv(t, "SJP_DB_USERNAME")
+	unsetEnv(t, "SJP_DB_PASSWORD")
+	unsetEnv(t, "SJP_DB_MIGRATIONS_FOLDER_PATH")
+	unsetEnv(t, "SJP_MAIL_TEMPLATES_FOLDER_PATH")
+	unsetEnv(t, "SJP_MAIL_SMTP_HOST")
+	unsetEnv(t, "SJP_MAIL_SMTP_PORT")
+	unsetEnv(t, "SJP_MAIL_SMTP_USERNAME")
+	unsetEnv(t, "SJP_MAIL_SMTP_PASSWORD")
+	unsetEnv(t, "SJP_MAIL_TLS_INSECURE_SKIP_VERIFY")
+	unsetEnv(t, "SJP_MAIL_TLS_SERVER_NAME")
+	unsetEnv(t, "SJP_ADMIN_API_ENABLE")
+	unsetEnv(t, "SJP_ADMIN_API_USERNAME")
+	unsetEnv(t, "SJP_ADMIN_API_PASSWORD")
 }

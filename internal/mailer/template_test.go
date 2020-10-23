@@ -1,8 +1,10 @@
 package mailer
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/DusanKasan/parsemail"
 	htmlTemplate "html/template"
 	"os"
 	"reflect"
@@ -118,5 +120,122 @@ func TestLoadTemplates(t *testing.T) {
 }
 
 func TestTemplate_Render(t *testing.T) {
+	tests := []struct {
+		name             string
+		htmlTplContent   string
+		textTplContent   string
+		headerTplContent string
+		givenRenderArgs  interface{}
+		expectedError    error
+	}{
+		{
+			name:           "Happycase",
+			htmlTplContent: "html template {{.TestID}}",
+			textTplContent: "text template {{.TestID}}",
+			headerTplContent: `MyHeader:
+  - "headaaaaa {{.TestID}}"`,
+			givenRenderArgs: struct {
+				TestID string
+			}{
+				"myTestID",
+			},
+		},
+		{
+			name: "header-template execute error handling",
+			headerTplContent: `MyHeader:
+  - "headaaaaa {{.notExisting}}"`,
+			givenRenderArgs: struct {
+				notExisting string
+			}{},
+			expectedError: errors.New("failed to render mail-headers-yml: template: htmlTemplate:2:17: executing \"htmlTemplate\" at <.notExisting>: notExisting is an unexported field of struct type struct { notExisting string }"),
+		},
+		{
+			name: "invalid header-template yml syntax",
+			headerTplContent: `MyHeader:
+  "headaaaaa"`,
+			expectedError: errors.New("failed to render mail-headers-yml: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str `headaaaaa` into []string"),
+		},
+		{
+			name:           "text-template Execute error handling",
+			htmlTplContent: "html template",
+			textTplContent: "text template {{.testID}}",
+			headerTplContent: `MyHeader:
+  - "headaaaaa"`,
+			givenRenderArgs: struct {
+				testID string
+			}{
+				"myTestID",
+			},
+			expectedError: errors.New("failed to render mail-body-text: template: htmlTemplate:1:16: executing \"htmlTemplate\" at <.testID>: testID is an unexported field of struct type struct { testID string }"),
+		},
+		{
+			name:           "html-template Execute error handling",
+			htmlTplContent: "html template {{.testID}}",
+			textTplContent: "text template",
+			headerTplContent: `MyHeader:
+  - "headaaaaa"`,
+			givenRenderArgs: struct {
+				testID string
+			}{
+				"myTestID",
+			},
+			expectedError: errors.New("failed to render mail-body-html: template: htmlTemplate:1:16: executing \"htmlTemplate\" at <.testID>: testID is an unexported field of struct type struct { testID string }"),
+		},
+	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			htmlTpl, err := htmlTemplate.New("htmlTemplate").Parse(tt.htmlTplContent)
+			if err != nil {
+				t.Fatal("failed to parse test html template", err)
+			}
+			textTpl, err := textTemplate.New("htmlTemplate").Parse(tt.textTplContent)
+			if err != nil {
+				t.Fatal("failed to parse test html template", err)
+			}
+			headerTpl, err := textTemplate.New("htmlTemplate").Parse(tt.headerTplContent)
+			if err != nil {
+				t.Fatal("failed to parse test html template", err)
+			}
+
+			mt := mailTemplate{
+				name:       "testMail",
+				htmlTmpl:   htmlTpl,
+				textTmpl:   textTpl,
+				headerTmpl: headerTpl,
+			}
+
+			mail, err := mt.Render(tt.givenRenderArgs)
+			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
+				t.Fatalf("unexpected error while render template. Expected:\n%q\nGiven:\n%q", tt.expectedError, err)
+			} else if err != nil {
+				return
+			}
+
+			var bb bytes.Buffer
+			_, err = mail.WriteTo(&bb)
+			if err != nil {
+				t.Error("failed to write mail to bb", err)
+			}
+
+			parsedEMail, err := parsemail.Parse(&bb) // returns Email struct and error
+			if err != nil {
+				t.Fatal("failed to parse written mail", err)
+			}
+
+			expectedHTMLBody := "html template myTestID"
+			if expectedHTMLBody != parsedEMail.HTMLBody {
+				t.Errorf("html body is not as expected. Expected: %q, Give: %q", expectedHTMLBody, parsedEMail.HTMLBody)
+			}
+			expectedTextBody := "text template myTestID"
+			if expectedTextBody != parsedEMail.TextBody {
+				t.Errorf("text body is not as expected. Expected: %q, Give: %q", expectedTextBody, parsedEMail.TextBody)
+			}
+			expectedTestHeaderContent := "headaaaaa myTestID"
+			testHeaderValue := parsedEMail.Header.Get("MyHeader")
+			if expectedTestHeaderContent != testHeaderValue {
+				t.Errorf("test header value is not as expected. Expected: %q, Give: %q", expectedTestHeaderContent, testHeaderValue)
+			}
+		})
+	}
 }
