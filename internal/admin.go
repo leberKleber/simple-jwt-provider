@@ -17,10 +17,8 @@ type User struct {
 	Claims   map[string]interface{}
 }
 
-/**
-Creates new user with given email, password and claims.
-return ErrUserAlreadyExists when user already exists
-*/
+// CreateUser creates new user with given email, password and claims.
+// return ErrUserAlreadyExists when user already exists
 func (p Provider) CreateUser(user User) error {
 	securedPassword, err := bcryptPassword(user.Password)
 	if err != nil {

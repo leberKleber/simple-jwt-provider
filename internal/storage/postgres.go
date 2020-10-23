@@ -30,6 +30,8 @@ func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (*Sto
 	}, nil
 }
 
+// Migrate executes all sql migration files from the configures db-migrations folder. Should always be called before
+// start
 func (s Storage) Migrate(dbMigrationsPath string) error {
 	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
 	if err != nil {
