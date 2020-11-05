@@ -79,9 +79,9 @@ func (g Generator) Generate(email string, userClaims map[string]interface{}) (st
 	//public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
 	claims["email"] = email //Recipient
 
-	t := jwt.NewWithClaims(jwt.SigningMethodES512, claims)
+	unsignedToken := jwt.NewWithClaims(jwt.SigningMethodES512, claims)
 
-	signedToken, err := t.SignedString(g.privateKey)
+	signedToken, err := unsignedToken.SignedString(g.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign token: %w", err)
 	}

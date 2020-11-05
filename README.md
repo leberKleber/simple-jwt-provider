@@ -9,20 +9,32 @@ User specific custom-claims also available for jwt-generation and mail rendering
 
 dockerized: https://hub.docker.com/r/leberkleber/simple-jwt-provider
 
+build it yourself:
+```shell script
+# as docker-image
+docker build . -t leberkleber/simple-jwt-provider
+
+# as binary
+go build -o simple-jwt-provider ./cmd/provider/
+```
+
 # Table of contents
- - [Try it](#try-it)
- - [Getting started](#getting-started)
-   - [Generate ECDSA-512 key pair](#generate-ecdsa-512-key-pair)
-   - [Configuration](#configuration)
- - [API](#api)
-   - [POST `/v1/auth/login`](#post-v1authlogin)
-   - [POST `/v1/auth/password-reset-request`](#post-v1authpassword-reset-request)
-   - [POST `/v1/auth/password-reset`](#post-v1authpassword-reset)
-   - [POST `/v1/admin/users`](#post-v1adminusers)
-   - [PUT `/v1/admin/users/{email}`](#put-v1adminusersemail)
-   - [DELETE `/v1/admin/users/{email}`](#delete-v1adminusersemail)
- - [Development](#development)
-   - [mocks](#mocks)
+- [Try it](#try-it)
+- [Getting started](#getting-started)
+  - [Generate ECDSA-512 key pair](#generate-ecdsa-512-key-pair)
+  - [Configuration](#configuration)
+- [API](#api)
+  - [POST `/v1/auth/login`](#post-v1authlogin)
+  - [POST `/v1/auth/password-reset-request`](#post-v1authpassword-reset-request)
+  - [POST `/v1/auth/password-reset`](#post-v1authpassword-reset)
+  - [POST `/v1/admin/users`](#post-v1adminusers)
+  - [PUT `/v1/admin/users/{email}`](#put-v1adminusersemail)
+  - [DELETE `/v1/admin/users/{email}`](#delete-v1adminusersemail)
+- [Mail](#mail)
+  - [Password reset request](#password-reset-request)
+- [Development](#development)
+  - [mocks](#mocks)
+  - [component tests](#component-tests)
    
 ## Try it
 ```shell script
@@ -176,9 +188,29 @@ Response body (200 - NO CONTENT)
 ```
 
 ### DELETE `/v1/admin/users/{email}`
-This endpoint will delete the user with the given email when there are no tokens which referred to this user and the admin api auth was successfully:
+This endpoint will delete the user with the given email when there are no tokens which referred to this user, and the
+admin api auth was successfully:
 
 Response body (201 - NO CONTENT)
+
+## Mail
+Mails will be generated based on a set of templates.
+- `<mailType>.html` represents the html body of the mail and can be templated with `html.template` syntax 
+(https://golang.org/pkg/html/template/). Available templating arguments listed in detailed template type description.
+- `<mailType>.txt` represents the text body of the mail and can be templated with `text.template` syntax 
+(https://golang.org/pkg/text/template/). Available templating arguments listed in detailed template type description.
+- `<mailType>.yml` represents the header of the mail. In this template headers e.g. `From`, `To` or `Subject`
+can be set `text.template` syntax (https://golang.org/pkg/text/template/). Available templating arguments listed
+in detailed template type description.
+
+### Password reset request
+An example of this mail type can be found in `/mail-templates/password-reset-request.*`.
+Available template arguments:
+| Argument           | Content                                                | Example usage                       |
+|--------------------|--------------------------------------------------------|-------------------------------------|
+| Recipient          | Users email address                                    | `{{.Recipient}}`                    |
+| PasswordResetToken | The token which is required to reset the password      | `{{.PasswordResetToken}}`           |
+| Claims             | All custom-claims which stored in relation to the user | `{{if index .Claims "first_name"}}` |
 
 ## Development
 ### mocks
@@ -186,4 +218,12 @@ Mocks will be generated with github.com/matryer/moq. Execute the following for g
 ```shell script
 go get github.com/matryer/moq
 go generate ./...
+```
+### component tests
+Component tests can be executed locally with: 
+```shell script
+# build simple-jwt-provider from source code
+# setup infrastructure
+# run all test file with build-tag component in /cmd/provider 
+./component-tests.sh
 ```

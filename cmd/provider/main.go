@@ -9,6 +9,7 @@ import (
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"github.com/leberKleber/simple-jwt-provider/internal/web"
 	"github.com/sirupsen/logrus"
+	"net/http"
 
 	// database migration
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -59,7 +60,8 @@ func main() {
 	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: m}
 	server := web.NewServer(provider, cfg.AdminAPI.Enable, cfg.AdminAPI.Username, cfg.AdminAPI.Password)
 
-	if err := server.ListenAndServe(cfg.ServerAddress); err != nil {
+	err = server.ListenAndServe(cfg.ServerAddress)
+	if err != nil && err != http.ErrServerClosed {
 		logrus.WithError(err).Fatal("Failed to run server")
 	}
 }

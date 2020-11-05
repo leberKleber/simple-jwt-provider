@@ -7,8 +7,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const blankedPassword = "**********"
+
 var bcryptCost = 12
-var blankedPassword = "**********"
 var ErrUserAlreadyExists = errors.New("user already exists")
 
 // User is the representation of a user for use in internal
@@ -21,14 +22,14 @@ type User struct {
 // CreateUser creates new user with given email, password and claims.
 // return ErrUserAlreadyExists when user already exists
 func (p Provider) CreateUser(user User) error {
-	securedPassword, err := bcryptPassword(user.Password)
+	bcryptedPassword, err := bcryptPassword(user.Password)
 	if err != nil {
 		return fmt.Errorf("failed to bcrypt password: %w", err)
 	}
 
 	err = p.Storage.CreateUser(storage.User{
 		EMail:    user.EMail,
-		Password: securedPassword,
+		Password: bcryptedPassword,
 		Claims:   user.Claims,
 	})
 	if err != nil {
@@ -116,6 +117,6 @@ func (p Provider) DeleteUser(email string) error {
 	return nil
 }
 
-func bcryptPassword(password string) ([]byte, error) {
+var bcryptPassword = func(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
 }

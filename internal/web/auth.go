@@ -85,7 +85,6 @@ func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	return
 }
 
 func (s *Server) passwordResetHandler(w http.ResponseWriter, r *http.Request) {

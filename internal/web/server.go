@@ -29,14 +29,16 @@ type Server struct {
 func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPassword string) *Server {
 	s := &Server{}
 	r := mux.NewRouter()
+
+	r.Use(contentTypeMiddleware)
+	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	r.MethodNotAllowedHandler = http.HandlerFunc(methodNotAllowedHandler)
+
 	v1 := r.PathPrefix("/v1").Subrouter()
 	v1.Path("/internal/alive").Methods(http.MethodGet).HandlerFunc(s.aliveHandler)
 	v1.Path("/auth/login").Methods(http.MethodPost).HandlerFunc(s.loginHandler)
 	v1.Path("/auth/password-reset-request").Methods(http.MethodPost).HandlerFunc(s.passwordResetRequestHandler)
 	v1.Path("/auth/password-reset").Methods(http.MethodPost).HandlerFunc(s.passwordResetHandler)
-
-	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
-	r.MethodNotAllowedHandler = http.HandlerFunc(methodNotAllowedHandler)
 
 	if enableAdminAPI {
 		adminAPI := v1.PathPrefix("/admin").Subrouter()
@@ -58,18 +60,19 @@ func (s *Server) ListenAndServe(address string) error {
 	return http.ListenAndServe(address, s.h)
 }
 
-func writeInternalServerError(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusInternalServerError)
-	_, err := w.Write([]byte(`{"message":"internal server error"}`))
-	if err != nil {
-		logrus.WithError(err).Error("Failed to write error response")
-	}
+func contentTypeMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		handler.ServeHTTP(w, r)
+	})
+}
+
+type errorResponseBody struct {
+	Message string `json:"message"`
 }
 
 func writeError(w http.ResponseWriter, statusCode int, message string) {
-	b, err := json.Marshal(struct {
-		Message string `json:"message"`
-	}{
+	respBody, err := json.Marshal(errorResponseBody{
 		Message: message,
 	})
 	if err != nil {
@@ -79,11 +82,19 @@ func writeError(w http.ResponseWriter, statusCode int, message string) {
 	}
 
 	w.WriteHeader(statusCode)
-	_, err = w.Write(b)
+	_, err = w.Write(respBody)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to write error response")
 		writeInternalServerError(w)
 		return
+	}
+}
+
+func writeInternalServerError(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
+	_, err := w.Write([]byte(`{"message":"internal server error"}`))
+	if err != nil {
+		logrus.WithError(err).Error("Failed to write error response")
 	}
 }
 
