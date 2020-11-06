@@ -1,5 +1,4 @@
-name: Go
-
+name: go
 on: [push]
 
 jobs:
