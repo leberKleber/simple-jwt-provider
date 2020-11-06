@@ -52,7 +52,7 @@ func TestStorage_CreateToken(t *testing.T) {
 			expectedDBType:      "reset",
 			expectedDBToken:     "myGeneratedToken",
 			expectedDBCreatedAt: time.Date(2020, 2, 1, 4, 46, 45, 2, time.UTC),
-			expectedErr:         errors.New("failed to exec stmt: nope"),
+			expectedErr:         errors.New("failed to exec create token stmt: nope"),
 		},
 	}
 
@@ -117,7 +117,7 @@ func TestStorage_TokensByEMailAndToken(t *testing.T) {
 			dbResponseErr:   errors.New("nope"),
 			expectedDBEMail: "info@leberkleber.io",
 			expectedDBToken: "myGeneratedToken",
-			expectedErr:     errors.New("failed to exec select-token-stmt: nope"),
+			expectedErr:     errors.New("failed to exec select token stmt: nope"),
 		},
 		{
 			name:       "Unable to scan sql response",
@@ -128,7 +128,7 @@ func TestStorage_TokensByEMailAndToken(t *testing.T) {
 				AddRow(42, "reset"),
 			expectedDBEMail: "info@leberkleber.io",
 			expectedDBToken: "myGeneratedToken",
-			expectedErr:     errors.New("failed to scan select-token-stmt result: sql: expected 2 destination arguments in Scan, not 3"),
+			expectedErr:     errors.New("failed to scan select token stmt result: sql: expected 2 destination arguments in Scan, not 3"),
 		},
 	}
 

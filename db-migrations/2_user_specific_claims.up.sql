@@ -1,1 +1,2 @@
-ALTER TABLE users ADD COLUMN claims bytea;
+ALTER TABLE users
+    ADD COLUMN claims bytea;

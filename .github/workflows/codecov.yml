@@ -1,5 +1,5 @@
 name: codecov
-on: [push]
+on: [ push ]
 jobs:
   codecov:
     name: codecov
