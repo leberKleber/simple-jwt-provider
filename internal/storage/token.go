@@ -26,7 +26,7 @@ func (s Storage) CreateToken(t Token) (int64, error) {
 		t.EMail, t.Token, t.Type, t.CreatedAt,
 	).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("failed to exec stmt: %w", err)
+		return 0, fmt.Errorf("failed to exec create token stmt: %w", err)
 	}
 
 	return id, nil
@@ -36,7 +36,7 @@ func (s Storage) CreateToken(t Token) (int64, error) {
 func (s Storage) TokensByEMailAndToken(email, token string) ([]Token, error) {
 	rows, err := s.db.Query("SELECT id, type, created_at FROM tokens WHERE email = $1 AND token = $2;", email, token)
 	if err != nil {
-		return nil, fmt.Errorf("failed to exec select-token-stmt: %w", err)
+		return nil, fmt.Errorf("failed to exec select token stmt: %w", err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -48,7 +48,7 @@ func (s Storage) TokensByEMailAndToken(email, token string) ([]Token, error) {
 		}
 		err := rows.Scan(&t.ID, &t.Type, &t.CreatedAt)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan select-token-stmt result: %w", err)
+			return nil, fmt.Errorf("failed to scan select token stmt result: %w", err)
 		}
 
 		tokens = append(tokens, t)

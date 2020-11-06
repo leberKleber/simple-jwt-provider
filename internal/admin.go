@@ -51,7 +51,7 @@ func (p Provider) GetUser(email string) (User, error) {
 			return User{}, ErrUserNotFound
 		}
 
-		return User{}, fmt.Errorf("failed to delete user with email %q: %w", email, err)
+		return User{}, fmt.Errorf("failed to find user with email %q: %w", email, err)
 	}
 
 	return User{

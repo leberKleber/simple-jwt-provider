@@ -142,7 +142,7 @@ func TestProvider_GetUser(t *testing.T) {
 			givenEMail:      "test@test.test",
 			dbExpectedEMail: "test@test.test",
 			dbReturnError:   errors.New("my custom error. ALARM"),
-			expectedError:   errors.New(`failed to delete user with email "test@test.test": my custom error. ALARM`),
+			expectedError:   errors.New(`failed to find user with email "test@test.test": my custom error. ALARM`),
 		},
 	}
 

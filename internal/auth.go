@@ -23,7 +23,7 @@ func (p Provider) Login(email, password string) (string, error) {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return "", ErrUserNotFound
 		}
-		return "", fmt.Errorf("failed to query user with email %q: %w", email, err)
+		return "", fmt.Errorf("failed to find user with email %q: %w", email, err)
 	}
 
 	err = bcrypt.CompareHashAndPassword(u.Password, []byte(password))
@@ -42,12 +42,12 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return ErrUserNotFound
 		}
-		return fmt.Errorf("failed to query user with email %q: %w", email, err)
+		return fmt.Errorf("failed to find user with email %q: %w", email, err)
 	}
 
 	t, err := generateHEXToken()
 	if err != nil {
-		return fmt.Errorf("failed to generate password-reset-token: %w", err)
+		return fmt.Errorf("failed to generate password reset token: %w", err)
 	}
 
 	_, err = p.Storage.CreateToken(storage.Token{
@@ -57,12 +57,12 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 		CreatedAt: nowFunc(),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to create password-reset-token for email %q: %w", email, err)
+		return fmt.Errorf("failed to create password reset token for email %q: %w", email, err)
 	}
 
 	err = p.Mailer.SendPasswordResetRequestEMail(email, t, u.Claims)
 	if err != nil {
-		return fmt.Errorf("failed to send password-reset-email: %w", err)
+		return fmt.Errorf("failed to send password reset email: %w", err)
 	}
 
 	return nil
@@ -73,7 +73,7 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
 	tokens, err := p.Storage.TokensByEMailAndToken(email, resetToken)
 	if err != nil {
-		return fmt.Errorf("faild to find all avalilable tokens: %w", err)
+		return fmt.Errorf("failed to find tokens: %w", err)
 	}
 
 	var t *storage.Token
@@ -91,7 +91,7 @@ func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
 
 	u, err := p.Storage.User(email)
 	if err != nil {
-		return fmt.Errorf("failed to find user: %w", err)
+		return fmt.Errorf("failed to find user with email %q: %w", email, err)
 	}
 
 	securedPassword, err := bcryptPassword(newPassword)
