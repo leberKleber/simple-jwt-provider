@@ -146,7 +146,6 @@ Request body:
 
 Response (200 - OK)
 
-
 ### POST `/v1/admin/users`
 This endpoint will create a new user if admin api auth was successfully:
 

@@ -12,7 +12,9 @@ import (
 	"time"
 )
 
-var nowFunc = time.Now
+var timeNow = time.Now
+var uuidNewRandom = uuid.NewRandom
+var x509ParseECPrivateKey = x509.ParseECPrivateKey
 var lifeTime = 4 * time.Hour
 
 type Generator struct {
@@ -33,9 +35,9 @@ func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Gener
 		return nil, errors.New("no valid private key found")
 	}
 
-	pKey, err := x509.ParseECPrivateKey(blockPrv.Bytes)
+	pKey, err := x509ParseECPrivateKey(blockPrv.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse private-key: %w", err)
 	}
 
 	return &Generator{
@@ -56,8 +58,8 @@ func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Gener
 // with the given claims.
 // 'userClaims' can be contain all json compatible types
 func (g Generator) Generate(email string, userClaims map[string]interface{}) (string, error) {
-	now := nowFunc()
-	jwtID, err := uuid.NewRandom()
+	now := timeNow()
+	jwtID, err := uuidNewRandom()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate jwt-id: %w", err)
 	}
