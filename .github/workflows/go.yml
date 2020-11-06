@@ -1,9 +1,7 @@
-name: Go
-
+name: go
 on: [ push ]
 
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
