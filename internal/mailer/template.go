@@ -60,7 +60,7 @@ func (t mailTemplate) Render(args interface{}) (*mail.Message, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to render mail-body-text: %w", err)
 	}
-	msg.AddAlternative("text/plain", buf.String())
+	msg.SetBody("text/plain", buf.String())
 
 	buf.Reset()
 	err = t.htmlTmpl.Execute(&buf, args)

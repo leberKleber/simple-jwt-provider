@@ -47,7 +47,7 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 
 	t, err := generateHEXToken()
 	if err != nil {
-		return fmt.Errorf("failed to generate password-reset-token")
+		return fmt.Errorf("failed to generate password-reset-token: %w", err)
 	}
 
 	_, err = p.Storage.CreateToken(storage.Token{
@@ -114,7 +114,7 @@ func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
 }
 
 //generate 64 char long hex token  (32 bytes == 64 hex chars)
-func generateHEXToken() (string, error) {
+var generateHEXToken = func() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	return fmt.Sprintf("%x", b), err

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ardanlabs/conf"
 	"github.com/leberKleber/simple-jwt-provider/internal"
 	"github.com/leberKleber/simple-jwt-provider/internal/jwt"
@@ -27,8 +26,7 @@ func main() {
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not build config string")
 	}
-	fmt.Print(cfgAsString)
-	logrus.Infof("Starting provider")
+	logrus.WithField("configuration", cfgAsString).Info("Starting provider")
 
 	s, err := storage.New(cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Name, false)
 	if err != nil {

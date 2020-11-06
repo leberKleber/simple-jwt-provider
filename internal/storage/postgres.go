@@ -64,11 +64,11 @@ func (s Storage) Migrate(dbMigrationsPath string) error {
 		if err != migrate.ErrNoChange {
 			return fmt.Errorf("failed to executed database schema migration: %w", err)
 		}
-		logrus.Info("no database schema changes")
+		logrus.Info("No database schema changes")
 		return nil
 	}
 
-	logrus.Info("executed database schema migration successfully")
+	logrus.Info("Executed database schema migration successfully")
 	return nil
 }
 

@@ -120,6 +120,7 @@ func TestProvider_CreatePasswordResetRequest(t *testing.T) {
 		expectedError             error
 		dbUserReturnError         error
 		dbCreateTokenReturnError  error
+		generateHEXTokenError     error
 		mailerError               error
 		dbExpectedToken           storage.Token
 		expectedMailRecipient     string
@@ -166,11 +167,25 @@ func TestProvider_CreatePasswordResetRequest(t *testing.T) {
 				EMail: "test.test@test",
 				ID:    0,
 			},
+		}, {
+			name:                  "Unable to generate HEX token",
+			givenEMail:            "test.test@test",
+			generateHEXTokenError: errors.New("random error"),
+			expectedError:         errors.New("failed to generate password-reset-token: random error"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.generateHEXTokenError != nil {
+				oldGenerateHEXToken := generateHEXToken
+				defer func() { generateHEXToken = oldGenerateHEXToken }()
+
+				generateHEXToken = func() (string, error) {
+					return "", tt.generateHEXTokenError
+				}
+			}
+
 			var storageUserEMail string
 			var storageCreateTokenToken storage.Token
 			var mailerRecipient string
@@ -231,17 +246,18 @@ func TestProvider_ResetPassword(t *testing.T) {
 	bcryptCost = bcrypt.MinCost
 
 	tests := []struct {
-		name               string
-		givenEMail         string
-		givenResetToken    string
-		givenNewPassword   string
-		dbToken            []storage.Token
-		dbTokenError       error
-		dbUser             storage.User
-		dbUserError        error
-		dbUpdateUserError  error
-		dbDeleteTokenError error
-		expectedError      error
+		name                string
+		givenEMail          string
+		givenResetToken     string
+		givenNewPassword    string
+		bcryptPasswordError error
+		dbToken             []storage.Token
+		dbTokenError        error
+		dbUser              storage.User
+		dbUserError         error
+		dbUpdateUserError   error
+		dbDeleteTokenError  error
+		expectedError       error
 	}{
 		{
 			name:             "Happycase",
@@ -306,10 +322,30 @@ func TestProvider_ResetPassword(t *testing.T) {
 			dbDeleteTokenError: errors.New("unexpected error"),
 			expectedError:      errors.New("failed to delete token: unexpected error"),
 		},
+		{
+			name:                "Error bcrypt password",
+			givenNewPassword:    "newPassword",
+			givenResetToken:     "resetToken",
+			givenEMail:          "email",
+			bcryptPasswordError: errors.New("something went wrong"),
+			dbToken: []storage.Token{
+				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
+			},
+			expectedError: errors.New("failed to bcrypt password: something went wrong"),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.bcryptPasswordError != nil {
+				oldBcryptPassword := bcryptPassword
+				defer func() { bcryptPassword = oldBcryptPassword }()
+
+				bcryptPassword = func(password string) ([]byte, error) {
+					return nil, tt.bcryptPasswordError
+				}
+			}
+
 			toTest := Provider{
 				Storage: &StorageMock{
 					TokensByEMailAndTokenFunc: func(email string, token string) ([]storage.Token, error) {

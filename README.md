@@ -194,7 +194,7 @@ admin api auth was successfully:
 Response body (201 - NO CONTENT)
 
 ## Mail
-Mails will be generated based on a set of templates.
+Mails will be generated based on a set of templates which should be prepared for productive usage.
 - `<mailType>.html` represents the html body of the mail and can be templated with `html.template` syntax 
 (https://golang.org/pkg/html/template/). Available templating arguments listed in detailed template type description.
 - `<mailType>.txt` represents the text body of the mail and can be templated with `text.template` syntax 
