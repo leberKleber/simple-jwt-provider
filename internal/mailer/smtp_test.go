@@ -225,7 +225,7 @@ func TestMailer_SendPasswordResetRequestEMail_FailedToRenderTemplate(t *testing.
 	}
 
 	err := m.SendPasswordResetRequestEMail(givenRecipient, givenPasswordResetToken, givenClaims)
-	expectedError := errors.New("failed to render mail mailTemplate: i dont think so")
+	expectedError := errors.New("failed to render mail-template \"password-reset-request\": i dont think so")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
 		t.Fatalf("Unexpected error. Error:\n%q,\nExpected:\n%q", err, expectedError)
 	}

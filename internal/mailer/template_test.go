@@ -51,7 +51,7 @@ func TestLoadTemplates(t *testing.T) {
 			givenTemplateName:              "myTemplate",
 			parseHTMLFileExpectedFilenames: []string{"/my/mailTemplate/path/myTemplate.html"},
 			parseHTMLFileErr:               os.ErrNotExist,
-			expectedErr:                    errors.New("failed to load mail-body-html mailTemplate: file does not exist"),
+			expectedErr:                    errors.New("failed to load mail html body template: file does not exist"),
 		}, {
 			name:                           "could not load text mailTemplate",
 			givenTemplatePath:              "/my/mailTemplate/path",
@@ -60,7 +60,7 @@ func TestLoadTemplates(t *testing.T) {
 			parseHTMLFileTemplate:          htmlTemplate.New("myTemplateHTML"),
 			parseTextFileExpectedFilenames: []string{"/my/mailTemplate/path/myTemplate.txt"},
 			parseTextFileErr:               os.ErrPermission,
-			expectedErr:                    errors.New("failed to load mail-body-text mailTemplate: permission denied"),
+			expectedErr:                    errors.New("failed to load mail text body template: permission denied"),
 		}, {
 			name:                           "could not load yml mailTemplate",
 			givenTemplatePath:              "/my/mailTemplate/path",
@@ -71,7 +71,7 @@ func TestLoadTemplates(t *testing.T) {
 			parseTextFileTemplate:          textTemplate.New("myTemplateText"),
 			parseYMLFileExpectedFilenames:  []string{"/my/mailTemplate/path/myTemplate.yml"},
 			parseYMLFileErr:                errors.New("abc error"),
-			expectedErr:                    errors.New("failed to load mail-headers-yml mailTemplate: abc error"),
+			expectedErr:                    errors.New("failed to load mail headers template: abc error"),
 		},
 	}
 
@@ -147,13 +147,13 @@ func TestTemplate_Render(t *testing.T) {
 			givenRenderArgs: struct {
 				notExisting string
 			}{},
-			expectedError: errors.New("failed to render mail-headers-yml: template: htmlTemplate:2:17: executing \"htmlTemplate\" at <.notExisting>: notExisting is an unexported field of struct type struct { notExisting string }"),
+			expectedError: errors.New("failed to render mail headers: template: htmlTemplate:2:17: executing \"htmlTemplate\" at <.notExisting>: notExisting is an unexported field of struct type struct { notExisting string }"),
 		},
 		{
 			name: "invalid header-template yml syntax",
 			headerTplContent: `MyHeader:
   "headaaaaa"`,
-			expectedError: errors.New("failed to render mail-headers-yml: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str `headaaaaa` into []string"),
+			expectedError: errors.New("failed to render mail headers: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str `headaaaaa` into []string"),
 		},
 		{
 			name:           "text-template Execute error handling",
@@ -166,7 +166,7 @@ func TestTemplate_Render(t *testing.T) {
 			}{
 				"myTestID",
 			},
-			expectedError: errors.New("failed to render mail-body-text: template: htmlTemplate:1:16: executing \"htmlTemplate\" at <.testID>: testID is an unexported field of struct type struct { testID string }"),
+			expectedError: errors.New("failed to render mail text body: template: htmlTemplate:1:16: executing \"htmlTemplate\" at <.testID>: testID is an unexported field of struct type struct { testID string }"),
 		},
 		{
 			name:           "html-template Execute error handling",
@@ -179,7 +179,7 @@ func TestTemplate_Render(t *testing.T) {
 			}{
 				"myTestID",
 			},
-			expectedError: errors.New("failed to render mail-body-html: template: htmlTemplate:1:16: executing \"htmlTemplate\" at <.testID>: testID is an unexported field of struct type struct { testID string }"),
+			expectedError: errors.New("failed to render mail html body: template: htmlTemplate:1:16: executing \"htmlTemplate\" at <.testID>: testID is an unexported field of struct type struct { testID string }"),
 		},
 	}
 

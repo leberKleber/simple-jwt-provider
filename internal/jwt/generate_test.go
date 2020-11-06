@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"testing"
 )
 
@@ -23,8 +24,7 @@ rHu/bdKj7lc2WaW8x/EOrU/FeCcsIL5nTH+gBwYFK4EEACOhgYkDgYYABAFBJr90
 WldGrPppBCbHqw2nGXeafxnSj6qB+A7E8A/G74mmmwIaqtf/pJ5QjqTPcAVUAEYF
 Tz/0SPO3tPL1Ym3V0QH7TfnTf7EueabJqPdsSGR6uvbb2YOA9vy4OU8SXp/9a/4x
 r94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==
------END EC PRIVATE KEY-----
-`
+-----END EC PRIVATE KEY-----`
 
 func TestNewGenerator(t *testing.T) {
 	g, err := NewGenerator(jwtPrvKey, "audience", "issuer", "subject")
@@ -80,12 +80,44 @@ func TestNewGenerator(t *testing.T) {
 	}
 }
 
-func TestNewGeneratorWithoutPrivateKey(t *testing.T) {
+func TestNewGenerator_WithoutPrivateKey(t *testing.T) {
 	_, err := NewGenerator("", "audience", "issuer", "subject")
 
 	expectedError := errors.New("no valid private key found")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
 		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
+	}
+}
+
+func TestNewGenerator_InvalidPrivateKey(t *testing.T) {
+	oldX509ParseECPrivateKey := x509ParseECPrivateKey
+	defer func() { x509ParseECPrivateKey = oldX509ParseECPrivateKey }()
+
+	x509ParseECPrivateKey = func(der []byte) (*ecdsa.PrivateKey, error) {
+		return nil, errors.New("errrooooooorrrr")
+	}
+
+	_, err := NewGenerator(jwtPrvKey, "audience", "issuer", "subject")
+
+	expectedError := errors.New("failed to parse private-key: errrooooooorrrr")
+	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
+		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
+	}
+}
+
+func TestGenerator_Generate_FailedToGenerateUUID(t *testing.T) {
+	oldUUIDNewRandom := uuidNewRandom
+	defer func() { uuidNewRandom = oldUUIDNewRandom }()
+
+	uuidNewRandom = func() (uuid.UUID, error) {
+		return uuid.UUID{}, errors.New("nope")
+	}
+
+	_, err := Generator{}.Generate("my.email.de", nil)
+
+	expectedError := errors.New("failed to generate jwt-id: nope")
+	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
+		t.Fatalf("unexpected error. Expected: %q. Gven:: %q", expectedError, err)
 	}
 }
 

@@ -78,12 +78,12 @@ func (m *Mailer) SendPasswordResetRequestEMail(recipient, passwordResetToken str
 
 	msg, err := tpl.Render(mailData)
 	if err != nil {
-		return fmt.Errorf("failed to render mail mailTemplate: %w", err)
+		return fmt.Errorf("failed to render mail-template %q: %w", passwordResetRequestTemplateName, err)
 	}
 
 	err = m.dialer.DialAndSend(msg)
 	if err != nil {
-		return fmt.Errorf("failed to send email: %s", err)
+		return fmt.Errorf("failed to send email: %w", err)
 	}
 
 	return nil

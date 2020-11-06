@@ -108,6 +108,12 @@ func TestLoginHandler(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
+			expectedContentType := "application/json"
+			givenContentType := resp.Header.Get("Content-Type")
+			if expectedContentType != givenContentType {
+				t.Errorf("Unexpected response content-type. Given: %q, Expected: %q", givenContentType, expectedContentType)
+			}
+
 			if resp.StatusCode != tt.expectedResponseCode {
 				t.Errorf("Request respond with unexpected status code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
 			}
@@ -210,6 +216,12 @@ func TestPasswordResetRequestHandler(t *testing.T) {
 				t.Fatalf("Failed to call server cause: %s", err)
 			}
 			defer resp.Body.Close()
+
+			expectedContentType := "application/json"
+			givenContentType := resp.Header.Get("Content-Type")
+			if expectedContentType != givenContentType {
+				t.Errorf("Unexpected response content-type. Given: %q, Expected: %q", givenContentType, expectedContentType)
+			}
 
 			if resp.StatusCode != tt.expectedResponseCode {
 				t.Errorf("Request respond with unexpected status code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
@@ -332,6 +344,12 @@ func TestPasswordResetHandler(t *testing.T) {
 				t.Fatalf("Failed to call server cause: %s", err)
 			}
 			defer resp.Body.Close()
+
+			expectedContentType := "application/json"
+			givenContentType := resp.Header.Get("Content-Type")
+			if expectedContentType != givenContentType {
+				t.Errorf("Unexpected response content-type. Given: %q, Expected: %q", givenContentType, expectedContentType)
+			}
 
 			if resp.StatusCode != tt.expectedResponseCode {
 				t.Errorf("Request respond with unexpected status code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
