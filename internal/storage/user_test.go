@@ -117,7 +117,7 @@ func TestStorage_CreateUser(t *testing.T) {
 			expectedDBEMail:    "info@leberkleber.io",
 			expectedDBPassword: []byte("bcryptedPassword"),
 			expectedDBClaims:   []byte(`{"customClaim1":4711}`),
-			expectedError:      errors.New("failed to exec create stmt: nope"),
+			expectedError:      errors.New("failed to exec create user stmt: nope"),
 		},
 		{
 			name: "User already exists",
@@ -197,7 +197,7 @@ func TestStorage_UpdateUser(t *testing.T) {
 			expectedDBEMail:    "info@leberkleber.io",
 			expectedDBPassword: []byte("bcryptedPassword"),
 			expectedDBClaims:   []byte(`{"customClaim1":4711}`),
-			expectedError:      errors.New("failed to exec update stmt: nope"),
+			expectedError:      errors.New("failed to exec update user stmt: nope"),
 		},
 		{
 			name: "User already exists",

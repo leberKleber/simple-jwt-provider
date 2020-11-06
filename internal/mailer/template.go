@@ -26,17 +26,17 @@ type mailTemplate struct {
 var loadTemplates = func(path, name string) (mailTemplate, error) {
 	htmlTmpl, err := htmlTemplateParseFiles(filepath.Join(path, fmt.Sprintf("%s.html", name)))
 	if err != nil {
-		return mailTemplate{}, fmt.Errorf("failed to load mail-body-html mailTemplate: %w", err)
+		return mailTemplate{}, fmt.Errorf("failed to load mail html body template: %w", err)
 	}
 
 	textTmpl, err := textTemplateParseFiles(filepath.Join(path, fmt.Sprintf("%s.txt", name)))
 	if err != nil {
-		return mailTemplate{}, fmt.Errorf("failed to load mail-body-text mailTemplate: %w", err)
+		return mailTemplate{}, fmt.Errorf("failed to load mail text body template: %w", err)
 	}
 
 	headerTmpl, err := ymlTemplateParseFiles(filepath.Join(path, fmt.Sprintf("%s.yml", name)))
 	if err != nil {
-		return mailTemplate{}, fmt.Errorf("failed to load mail-headers-yml mailTemplate: %w", err)
+		return mailTemplate{}, fmt.Errorf("failed to load mail headers template: %w", err)
 	}
 
 	return mailTemplate{
@@ -52,20 +52,20 @@ func (t mailTemplate) Render(args interface{}) (*mail.Message, error) {
 
 	err := renderHeaders(msg, t.headerTmpl, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render mail-headers-yml: %w", err)
+		return nil, fmt.Errorf("failed to render mail headers: %w", err)
 	}
 
 	var buf bytes.Buffer
 	err = t.textTmpl.Execute(&buf, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render mail-body-text: %w", err)
+		return nil, fmt.Errorf("failed to render mail text body: %w", err)
 	}
-	msg.AddAlternative("text/plain", buf.String())
+	msg.SetBody("text/plain", buf.String())
 
 	buf.Reset()
 	err = t.htmlTmpl.Execute(&buf, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render mail-body-html: %w", err)
+		return nil, fmt.Errorf("failed to render mail html body: %w", err)
 	}
 	msg.AddAlternative("text/html", buf.String())
 

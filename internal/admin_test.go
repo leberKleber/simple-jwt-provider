@@ -11,11 +11,13 @@ import (
 
 func TestProvider_CreateUser(t *testing.T) {
 	tests := []struct {
-		name           string
-		givenUser      User
-		expectedError  error
-		dbExpectedUser storage.User //password not encrypted
-		dbReturnError  error
+		name                   string
+		givenUser              User
+		bcryptPasswordError    error
+		bcryptPasswordPassword []byte
+		dbExpectedUser         storage.User //password not encrypted
+		dbReturnError          error
+		expectedError          error
 	}{
 		{
 			name: "Happycase",
@@ -53,11 +55,27 @@ func TestProvider_CreateUser(t *testing.T) {
 				Password: []byte("s3cr3t"),
 			},
 			expectedError: errors.New(`failed to query user with email "test@test.test": my custom error. ALARM`),
+		}, {
+			name: "failed to bcrypt password",
+			givenUser: User{
+				EMail:    "test@test.test",
+				Password: "s3cr3t",
+			},
+			bcryptPasswordError: errors.New("failed to bcrypt password"),
+			dbReturnError:       errors.New("my custom error. ALARM"),
+			expectedError:       errors.New(`failed to bcrypt password: failed to bcrypt password`),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.bcryptPasswordError != nil {
+				oldBcryptPassword := bcryptPassword
+				defer func() { bcryptPassword = oldBcryptPassword }()
+				bcryptPassword = func(password string) ([]byte, error) {
+					return tt.bcryptPasswordPassword, tt.bcryptPasswordError
+				}
+			}
 			var givenDbUser storage.User
 			toTest := Provider{
 				Storage: &StorageMock{
@@ -77,12 +95,12 @@ func TestProvider_CreateUser(t *testing.T) {
 				t.Errorf("Given db user > email is not as expected: \nExpected:%s\nGiven:%s", tt.dbExpectedUser.EMail, givenDbUser.EMail)
 			}
 
-			if err := bcrypt.CompareHashAndPassword(givenDbUser.Password, tt.dbExpectedUser.Password); err != nil {
+			err = bcrypt.CompareHashAndPassword(givenDbUser.Password, tt.dbExpectedUser.Password)
+			if err != nil && !reflect.DeepEqual(givenDbUser.Password, tt.dbExpectedUser.Password) {
 				t.Errorf("Given db user > password is not as expected: \nExpected:%s\nGiven(bcrypted):%s", tt.dbExpectedUser.Password, givenDbUser.Password)
 			}
 		})
 	}
-
 }
 
 func TestProvider_GetUser(t *testing.T) {
@@ -124,7 +142,7 @@ func TestProvider_GetUser(t *testing.T) {
 			givenEMail:      "test@test.test",
 			dbExpectedEMail: "test@test.test",
 			dbReturnError:   errors.New("my custom error. ALARM"),
-			expectedError:   errors.New(`failed to delete user with email "test@test.test": my custom error. ALARM`),
+			expectedError:   errors.New(`failed to find user with email "test@test.test": my custom error. ALARM`),
 		},
 	}
 
@@ -317,7 +335,44 @@ func TestProvider_UpdateUser_UnableToUpdateUser(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestProvider_UpdateUser_UnableToBcryptPassword(t *testing.T) {
+	oldBcryptPassword := bcryptPassword
+	defer func() { bcryptPassword = oldBcryptPassword }()
+	bcryptPassword = func(password string) ([]byte, error) {
+		return nil, errors.New("failed to bcryptPassword")
+	}
+
+	userEMail := "test.test@test.test"
+	toTest := Provider{
+		Storage: &StorageMock{
+			UserFunc: func(_ string) (storage.User, error) {
+				return storage.User{
+					EMail:    userEMail,
+					Password: []byte("bycryptedPassword"),
+					Claims: map[string]interface{}{
+						"stored": "claim",
+					},
+				}, nil
+			},
+			UpdateUserFunc: func(_ storage.User) error {
+				return storage.ErrUserNotFound
+			},
+		},
+	}
+
+	_, err := toTest.UpdateUser(userEMail, User{
+		Password: "newPassword",
+		Claims: map[string]interface{}{
+			"d": "w",
+		},
+	})
+
+	expectedErr := errors.New("failed to bcrypt new password: failed to bcryptPassword")
+	if fmt.Sprint(err) != fmt.Sprint(expectedErr) {
+		t.Errorf("unexpected error. Expected:\n%q\nGiven:\n%q", expectedErr, err)
+	}
 }
 
 func TestProvider_DeleteUser(t *testing.T) {

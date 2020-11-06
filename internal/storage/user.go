@@ -33,7 +33,7 @@ func (s *Storage) CreateUser(u User) error {
 		if ok && pqErr.Constraint == "email_unique" {
 			return ErrUserAlreadyExists
 		}
-		return fmt.Errorf("failed to exec create stmt: %w", err)
+		return fmt.Errorf("failed to exec create user stmt: %w", err)
 	}
 
 	return nil
@@ -76,7 +76,7 @@ func (s *Storage) UpdateUser(u User) error {
 
 	resp, err := s.db.Exec("UPDATE users SET password = $2, claims = $3 WHERE email = $1;", u.EMail, u.Password, rawClaims)
 	if err != nil {
-		return fmt.Errorf("failed to exec update stmt: %w", err)
+		return fmt.Errorf("failed to exec update user stmt: %w", err)
 	}
 
 	ra, err := resp.RowsAffected()
@@ -118,7 +118,7 @@ func (s *Storage) DeleteUser(email string) error {
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("failed to commit delete transaction: %w", err)
+		return fmt.Errorf("failed to commit delete user transaction: %w", err)
 	}
 
 	return nil

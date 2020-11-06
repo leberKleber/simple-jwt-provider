@@ -111,6 +111,12 @@ func TestCreateUserHandler(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
+			expectedContentType := "application/json"
+			givenContentType := resp.Header.Get("Content-Type")
+			if expectedContentType != givenContentType {
+				t.Errorf("Unexpected response content-type. Given: %q, Expected: %q", givenContentType, expectedContentType)
+			}
+
 			if !reflect.DeepEqual(givenUser, givenUser) { //TODO can not compare claims via deepEqual
 				t.Errorf("Provider called with unexpected User. Given: \n%#v \nExpected: \n%#v", givenUser, tt.expectedUser)
 			}
@@ -207,6 +213,12 @@ func TestGetUserHandler(t *testing.T) {
 				t.Fatalf("Failed to call server cause: %s", err)
 			}
 			defer resp.Body.Close()
+
+			expectedContentType := "application/json"
+			givenContentType := resp.Header.Get("Content-Type")
+			if expectedContentType != givenContentType {
+				t.Errorf("Unexpected response content-type. Given: %q, Expected: %q", givenContentType, expectedContentType)
+			}
 
 			if resp.StatusCode != tt.expectedResponseCode {
 				t.Errorf("Request respond with unexpected status code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)
@@ -344,6 +356,12 @@ func TestUpdateUserHandler(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
+			expectedContentType := "application/json"
+			givenContentType := resp.Header.Get("Content-Type")
+			if expectedContentType != givenContentType {
+				t.Errorf("Unexpected response content-type. Given: %q, Expected: %q", givenContentType, expectedContentType)
+			}
+
 			if !reflect.DeepEqual(givenUser, givenUser) { //TODO can not compare claims via deepEqual
 				t.Errorf("Provider called with unexpected User. Given: \n%#v \nExpected: \n%#v", givenUser, tt.expectedUser)
 			}
@@ -431,6 +449,12 @@ func TestDeleteUserHandler(t *testing.T) {
 				t.Fatalf("Failed to call server cause: %s", err)
 			}
 			defer resp.Body.Close()
+
+			expectedContentType := "application/json"
+			givenContentType := resp.Header.Get("Content-Type")
+			if expectedContentType != givenContentType {
+				t.Errorf("Unexpected response content-type. Given: %q, Expected: %q", givenContentType, expectedContentType)
+			}
 
 			if resp.StatusCode != tt.expectedResponseCode {
 				t.Errorf("Request respond with unexpected status code. Expected: %d, Given: %d", tt.expectedResponseCode, resp.StatusCode)

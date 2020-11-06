@@ -33,7 +33,7 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	jwt, err := s.p.Login(requestBody.EMail, requestBody.Password)
 	if err != nil {
 		if errors.Is(err, internal.ErrIncorrectPassword) || errors.Is(err, internal.ErrUserNotFound) {
-			logrus.WithField("email", requestBody.EMail).Warn("somebody tried to login with invalid credentials")
+			logrus.WithField("email", requestBody.EMail).Warn("Somebody tried to login with invalid credentials")
 			writeError(w, http.StatusUnauthorized, "invalid credentials")
 			return
 		}
@@ -74,7 +74,7 @@ func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Requ
 	err = s.p.CreatePasswordResetRequest(requestBody.EMail)
 	if err != nil {
 		if errors.Is(err, internal.ErrUserNotFound) {
-			logrus.WithField("email", requestBody.EMail).Warn("somebody tried to create a reset-password-request for non existing User")
+			logrus.WithField("email", requestBody.EMail).Warn("Somebody tried to create a reset-password-request for non existing User")
 			w.WriteHeader(http.StatusCreated)
 			return
 		}
@@ -85,7 +85,6 @@ func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	return
 }
 
 func (s *Server) passwordResetHandler(w http.ResponseWriter, r *http.Request) {
