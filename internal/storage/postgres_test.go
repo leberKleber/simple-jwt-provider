@@ -10,6 +10,75 @@ import (
 	"testing"
 )
 
+func TestNew(t *testing.T) {
+	tests := []struct {
+		name                          string
+		givenSSLModeEnabled           bool
+		sqlOpenError                  error
+		expectedSQLOpenDataSourceName string
+		expectedError                 error
+	}{
+		{
+			name:                          "Happycase sqlMode enabled",
+			givenSSLModeEnabled:           true,
+			expectedSQLOpenDataSourceName: "host=myHost port=1234 user=myUsername password=myPassword dbname=myName sslmode=enable connect_timeout=30",
+		},
+		{
+			name:                          "Happycase sqlMode disable",
+			givenSSLModeEnabled:           false,
+			expectedSQLOpenDataSourceName: "host=myHost port=1234 user=myUsername password=myPassword dbname=myName sslmode=disable connect_timeout=30",
+		},
+		{
+			name:          "Error while sql.Open",
+			sqlOpenError:  errors.New("nope"),
+			expectedError: errors.New("failed to open database connection: nope"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oldSQLOpen := sqlOpen
+			defer func() {
+				sqlOpen = oldSQLOpen
+			}()
+
+			var sqlOpenDriverName, sqlOpenDataSourceName string
+			sqlOpen = func(driverName, dataSourceName string) (*sql.DB, error) {
+				sqlOpenDriverName = driverName
+				sqlOpenDataSourceName = dataSourceName
+
+				return nil, tt.sqlOpenError
+			}
+
+			dbHost := "myHost"
+			dbPort := 1234
+			dbUsername := "myUsername"
+			dbPassword := "myPassword"
+			dbName := "myName"
+
+			s, err := New(dbHost, dbPort, dbUsername, dbPassword, dbName, tt.givenSSLModeEnabled)
+			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
+				t.Fatalf("Unexpeted error. Given:\n%q\nExpected:\n%q", err, tt.expectedError)
+			} else if err != nil {
+				return
+			}
+
+			if s.dbName != dbName {
+				t.Errorf("Unexpected storage.dbName. Given: %q, expected: %q", s.dbName, dbName)
+			}
+
+			expectedSQLOpenDriverName := "postgres"
+			if sqlOpenDriverName != expectedSQLOpenDriverName {
+				t.Errorf("Unexpected sqlOpen.DriverName Given: %q, expected: %q", sqlOpenDriverName, expectedSQLOpenDriverName)
+			}
+
+			if sqlOpenDataSourceName != tt.expectedSQLOpenDataSourceName {
+				t.Errorf("Unexpected sqlOpen.DataSourceName Given: \n%q\nexpected: \n%q", sqlOpenDataSourceName, tt.expectedSQLOpenDataSourceName)
+			}
+		})
+	}
+}
+
 func TestStorage_Migrate(t *testing.T) {
 	tests := []struct {
 		name                                      string
