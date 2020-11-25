@@ -28,7 +28,7 @@ type config struct {
 	AdminAPI struct {
 		Enable   bool   `conf:"help:Enable admin API to manage stored users (true / false),default:false"`
 		Username string `conf:"help:Basic Auth Username if enable-admin-api = true"`
-		Password string `conf:"help:Basic Auth Password if enable-admin-api = true,noprint"`
+		Password string `conf:"help:Basic Auth Password if enable-admin-api = true when is bcrypted prefix with 'bcrypt',noprint"`
 	}
 	Mail struct {
 		TemplatesFolderPath string `conf:"help:Path to mail-templates folder,default:/mail-templates"`
