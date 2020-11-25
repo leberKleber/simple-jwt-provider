@@ -15,10 +15,10 @@ import (
 var timeNow = time.Now
 var uuidNewRandom = uuid.NewRandom
 var x509ParseECPrivateKey = x509.ParseECPrivateKey
-var lifeTime = 4 * time.Hour
 
 // Generator should be created via NewGenerator and creates JWTs via Generate with static and custom claims
 type Generator struct {
+	jwtLifetime   time.Duration
 	privateKey    *ecdsa.PrivateKey
 	privateClaims struct {
 		audience string
@@ -29,8 +29,8 @@ type Generator struct {
 
 // NewGenerator a Generator instance with the given jwt-configuration. Before instantiation the private key will be
 // checked and parsed
-func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Generator, error) {
-	privateKey = strings.Replace(privateKey, `\n`, "\n", -1) // TODO fix me (needed for start via ide)
+func NewGenerator(privateKey string, jwtLifetime time.Duration, jwtAudience, jwtIssuer, jwtSubject string) (*Generator, error) {
+	privateKey = strings.Replace(privateKey, `\n`, "\n", -1) //TODO fix me (needed for start via ide)
 	blockPrv, _ := pem.Decode([]byte(privateKey))
 	if blockPrv == nil {
 		return nil, errors.New("no valid private key found")
@@ -42,7 +42,8 @@ func NewGenerator(privateKey, jwtAudience, jwtIssuer, jwtSubject string) (*Gener
 	}
 
 	return &Generator{
-		privateKey: pKey,
+		jwtLifetime: jwtLifetime,
+		privateKey:  pKey,
 		privateClaims: struct {
 			audience string
 			issuer   string
@@ -71,13 +72,13 @@ func (g Generator) Generate(email string, userClaims map[string]interface{}) (st
 	}
 
 	// standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
-	claims["aud"] = g.privateClaims.audience // Audience
-	claims["exp"] = now.Add(lifeTime).Unix() // ExpiresAt
-	claims["jit"] = jwtID                    // Id
-	claims["iat"] = now.Unix()               // IssuedAt
-	claims["iss"] = g.privateClaims.issuer   // Issuer
-	claims["nbf"] = now.Unix()               // NotBefore
-	claims["sub"] = g.privateClaims.subject  // Subject
+	claims["aud"] = g.privateClaims.audience      //Audience
+	claims["exp"] = now.Add(g.jwtLifetime).Unix() //ExpiresAt
+	claims["jit"] = jwtID                         //Id
+	claims["iat"] = now.Unix()                    //IssuedAt
+	claims["iss"] = g.privateClaims.issuer        //Issuer
+	claims["nbf"] = now.Unix()                    //NotBefore
+	claims["sub"] = g.privateClaims.subject       //Subject
 
 	// public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
 	claims["email"] = email // Recipient
