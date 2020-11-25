@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"testing"
+	"time"
 )
 
 var jwtPubKey = `-----BEGIN PUBLIC KEY-----
@@ -27,7 +28,7 @@ r94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==
 -----END EC PRIVATE KEY-----`
 
 func TestNewGenerator(t *testing.T) {
-	g, err := NewGenerator(jwtPrvKey, "audience", "issuer", "subject")
+	g, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
 	if err != nil {
 		t.Fatalf("failed to crreate new generator: %s", err)
 	}
@@ -81,7 +82,7 @@ func TestNewGenerator(t *testing.T) {
 }
 
 func TestNewGenerator_WithoutPrivateKey(t *testing.T) {
-	_, err := NewGenerator("", "audience", "issuer", "subject")
+	_, err := NewGenerator("", 4*time.Hour, "audience", "issuer", "subject")
 
 	expectedError := errors.New("no valid private key found")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
@@ -97,7 +98,7 @@ func TestNewGenerator_InvalidPrivateKey(t *testing.T) {
 		return nil, errors.New("errrooooooorrrr")
 	}
 
-	_, err := NewGenerator(jwtPrvKey, "audience", "issuer", "subject")
+	_, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
 
 	expectedError := errors.New("failed to parse private-key: errrooooooorrrr")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {

@@ -76,29 +76,30 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 ```
 
 ### Configuration
-| Environment variable              | Description                                                         | Required                            | Default               |
-| --------------------------------- |:-------------------------------------------------------------------:| -----------------------------------:|----------------------:|
-| SJP_SERVER_ADDRESS                | Server-address network-interface to bind on e.g.: '127.0.0.1:8080'  | no                                  | 0.0.0.0:80            |
-| SJP_JWT_PRIVATE_KEY               | JWT PrivateKey ECDSA512                                             | yes                                 | -                     |
-| SJP_JWT_AUDIENCE                  | Audience private claim which will be applied in each JWT            | no                                  | -                     |
-| SJP_JWT_ISSUER                    | Issuer private claim which will be applied in each JWT              | no                                  | -                     |
-| SJP_JWT_SUBJECT                   | Subject private claim which will be applied in each JWT             | no                                  | -                     |
-| SJP_DB_HOST                       | Database-Host (postgres)                                            | yes                                 | -                     |
-| SJP_DB_PORT                       | Database-Port                                                       | no                                  | 5432                  |
-| SJP_DB_NAME                       | Database-Name                                                       | no                                  | simple-jwt-provider   |
-| SJP_DB_USERNAME                   | Database-Username                                                   | no                                  | -                     |
-| SJP_DB_PASSWORD                   | Database-Password                                                   | no                                  | -                     |
-| SJP_MIGRATIONS_FOLDER_PATH        | Database Migrations Folder Path                                     | no                                  | /db-migrations        |
-| SJP_ADMIN_API_ENABLE              | Enable admin API to manage stored users (true / false)              | no                                  | false                 |
-| SJP_ADMIN_API_USERNAME            | Basic Auth Username if enable-admin-api = true                      | yes, when enable-admin-api = true   | -                     |
-| SJP_ADMIN_API_PASSWORD            | Basic Auth Password if enable-admin-api = true when is bcrypted prefix with 'bcrypt:'                      | yes, when enable-admin-api = true   | -                     |
-| SJP_MAIL_TEMPLATES_FOLDER_PATH    | Path to mail-templates folder                                       | no                                  | /mail-templates       |
-| SJP_MAIL_SMTP_HOST                | SMTP host to connect to                                             | yes                                 | -                     |
-| SJP_MAIL_SMTP_PORT                | SMTP port to connect to                                             | no                                  | 587                   |
-| SJP_MAIL_SMTP_USERNAME            | SMTP username to authorize with                                     | yes                                 | -                     |
-| SJP_MAIL_SMTP_PASSWORD            | SMTP password to authorize with                                     | yes                                 | -                     |
-| SJP_MAIL_TLS_INSECURE_SKIP_VERIFY | true if certificates should not be verified                         | no                                  | false                 |
-| SJP_MAIL_TLS_SERVER_NAME          | name of the server who expose the certificate                       | no                                  | -                     |
+| Environment variable              | Description                                                                           | Required                            | Default               |
+| --------------------------------- |:-------------------------------------------------------------------------------------:| -----------------------------------:|----------------------:|
+| SJP_SERVER_ADDRESS                | Server-address network-interface to bind on e.g.: '127.0.0.1:8080'                    | no                                  | 0.0.0.0:80            |
+| SJP_JWT_LIFETIME                  | help:Lifetime of JWT                                                                  | no                                  | 4h                    |
+| SJP_JWT_PRIVATE_KEY               | JWT PrivateKey ECDSA512                                                               | yes                                 | -                     |
+| SJP_JWT_AUDIENCE                  | Audience private claim which will be applied in each JWT                              | no                                  | -                     |
+| SJP_JWT_ISSUER                    | Issuer private claim which will be applied in each JWT                                | no                                  | -                     |
+| SJP_JWT_SUBJECT                   | Subject private claim which will be applied in each JWT                               | no                                  | -                     |
+| SJP_DB_HOST                       | Database-Host (postgres)                                                              | yes                                 | -                     |
+| SJP_DB_PORT                       | Database-Port                                                                         | no                                  | 5432                  |
+| SJP_DB_NAME                       | Database-Name                                                                         | no                                  | simple-jwt-provider   |
+| SJP_DB_USERNAME                   | Database-Username                                                                     | no                                  | -                     |
+| SJP_DB_PASSWORD                   | Database-Password                                                                     | no                                  | -                     |
+| SJP_MIGRATIONS_FOLDER_PATH        | Database Migrations Folder Path                                                       | no                                  | /db-migrations        |
+| SJP_ADMIN_API_ENABLE              | Enable admin API to manage stored users (true / false)                                | no                                  | false                 |
+| SJP_ADMIN_API_USERNAME            | Basic Auth Username if enable-admin-api = true                                        | yes, when enable-admin-api = true   | -                     |
+| SJP_ADMIN_API_PASSWORD            | Basic Auth Password if enable-admin-api = true when is bcrypted prefix with 'bcrypt:' | yes, when enable-admin-api = true   | -                     |
+| SJP_MAIL_TEMPLATES_FOLDER_PATH    | Path to mail-templates folder                                                         | no                                  | /mail-templates       |
+| SJP_MAIL_SMTP_HOST                | SMTP host to connect to                                                               | yes                                 | -                     |
+| SJP_MAIL_SMTP_PORT                | SMTP port to connect to                                                               | no                                  | 587                   |
+| SJP_MAIL_SMTP_USERNAME            | SMTP username to authorize with                                                       | yes                                 | -                     |
+| SJP_MAIL_SMTP_PASSWORD            | SMTP password to authorize with                                                       | yes                                 | -                     |
+| SJP_MAIL_TLS_INSECURE_SKIP_VERIFY | true if certificates should not be verified                                           | no                                  | false                 |
+| SJP_MAIL_TLS_SERVER_NAME          | name of the server who expose the certificate                                         | no                                  | -                     |
 
 ## API
 ### POST `/v1/auth/login`
