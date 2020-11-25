@@ -91,7 +91,7 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 | SJP_MIGRATIONS_FOLDER_PATH        | Database Migrations Folder Path                                     | no                                  | /db-migrations        |
 | SJP_ADMIN_API_ENABLE              | Enable admin API to manage stored users (true / false)              | no                                  | false                 |
 | SJP_ADMIN_API_USERNAME            | Basic Auth Username if enable-admin-api = true                      | yes, when enable-admin-api = true   | -                     |
-| SJP_ADMIN_API_PASSWORD            | Basic Auth Password if enable-admin-api = true                      | yes, when enable-admin-api = true   | -                     |
+| SJP_ADMIN_API_PASSWORD            | Basic Auth Password if enable-admin-api = true when is bcrypted prefix with 'bcrypt:'                      | yes, when enable-admin-api = true   | -                     |
 | SJP_MAIL_TEMPLATES_FOLDER_PATH    | Path to mail-templates folder                                       | no                                  | /mail-templates       |
 | SJP_MAIL_SMTP_HOST                | SMTP host to connect to                                             | yes                                 | -                     |
 | SJP_MAIL_SMTP_PORT                | SMTP port to connect to                                             | no                                  | 587                   |

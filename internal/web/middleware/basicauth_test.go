@@ -18,11 +18,20 @@ func TestBasicAuth(t *testing.T) {
 		expectedUnauthorizedResponseHeader bool
 	}{
 		{
-			name:                               "Happycase",
+			name:                               "Happycase plain password",
 			configuredUsername:                 "username",
 			configuredPassword:                 "password",
 			requestUsername:                    "username",
 			requestPassword:                    "password",
+			expectedNextHasBeenCalled:          true,
+			expectedUnauthorizedResponseHeader: false,
+		},
+		{
+			name:                               "Happycase bcrypted password",
+			configuredUsername:                 "username",
+			configuredPassword:                 "bcrypt:$2y$12$YLjvF/KRsQ6999oazNXBR.DvZ3K2t8boyPFgXt84PFt4yLN3zVKw2",
+			requestUsername:                    "username",
+			requestPassword:                    "myPassword",
 			expectedNextHasBeenCalled:          true,
 			expectedUnauthorizedResponseHeader: false,
 		},
@@ -46,6 +55,15 @@ func TestBasicAuth(t *testing.T) {
 			name:                               "Invalid password",
 			configuredUsername:                 "username",
 			configuredPassword:                 "password",
+			requestUsername:                    "username",
+			requestPassword:                    "nope",
+			expectedNextHasBeenCalled:          false,
+			expectedUnauthorizedResponseHeader: true,
+		},
+		{
+			name:                               "Invalid password (bcrypted)",
+			configuredUsername:                 "username",
+			configuredPassword:                 "bcrypt:$2y$12$YLjvF/KRsQ6999oazNXBR.DvZ3K2t8boyPFgXt84PFt4yLN3zVKw2",
 			requestUsername:                    "username",
 			requestPassword:                    "nope",
 			expectedNextHasBeenCalled:          false,
