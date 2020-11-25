@@ -79,7 +79,7 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 | Environment variable              | Description                                                                           | Required                            | Default               |
 | --------------------------------- |:-------------------------------------------------------------------------------------:| -----------------------------------:|----------------------:|
 | SJP_SERVER_ADDRESS                | Server-address network-interface to bind on e.g.: '127.0.0.1:8080'                    | no                                  | 0.0.0.0:80            |
-| SJP_JWT_LIFETIME                  | help:Lifetime of JWT                                                                  | no                                  | 4h                    |
+| SJP_JWT_LIFETIME                  | Lifetime of JWT                                                                  | no                                  | 4h                    |
 | SJP_JWT_PRIVATE_KEY               | JWT PrivateKey ECDSA512                                                               | yes                                 | -                     |
 | SJP_JWT_AUDIENCE                  | Audience private claim which will be applied in each JWT                              | no                                  | -                     |
 | SJP_JWT_ISSUER                    | Issuer private claim which will be applied in each JWT                                | no                                  | -                     |
