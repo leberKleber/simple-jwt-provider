@@ -21,7 +21,8 @@ services:
       SJP_DB_PASSWORD: "postgres"
       SJP_ADMIN_API_ENABLE: "true"
       SJP_ADMIN_API_USERNAME: "username"
-      SJP_ADMIN_API_PASSWORD: "password"
+      # escape $ with $
+      SJP_ADMIN_API_PASSWORD: "bcrypt:$$2y$$12$$eOiNiEyREa2viPff8suTR.vw.HZSOSLGZE2ozfonFRn6w4HkV4Dbe"
       SJP_MAIL_SMTP_HOST: "mail-server"
       SJP_MAIL_SMTP_PORT: 1025
       SJP_MAIL_SMTP_PASSWORD: ""
