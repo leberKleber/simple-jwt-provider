@@ -15,7 +15,7 @@ func TestProvider_CreateUser(t *testing.T) {
 		givenUser              User
 		bcryptPasswordError    error
 		bcryptPasswordPassword []byte
-		dbExpectedUser         storage.User //password not encrypted
+		dbExpectedUser         storage.User // password not encrypted
 		dbReturnError          error
 		expectedError          error
 	}{

@@ -20,6 +20,7 @@ type template interface {
 	Render(args interface{}) (*mail.Message, error)
 }
 
+// Mailer should be created via New and can send different mails to different recipients based on loaded mail templates
 type Mailer struct {
 	dialer    dialer
 	templates map[string]template

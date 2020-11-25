@@ -10,6 +10,7 @@ import (
 )
 
 //go:generate moq -out provider_moq_test.go . Provider
+// Provider encapsulates internal.Provider to generate mocks
 type Provider interface {
 	Login(email, password string) (string, error)
 	CreatePasswordResetRequest(email string) error
@@ -20,6 +21,7 @@ type Provider interface {
 	DeleteUser(email string) error
 }
 
+// Server should be created via NewServer and starts with ListenAndServe all http endpoints for this service.
 type Server struct {
 	h http.Handler
 	p Provider

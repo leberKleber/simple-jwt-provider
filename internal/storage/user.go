@@ -8,14 +8,17 @@ import (
 	"github.com/lib/pq"
 )
 
-// User is the representation of a user for use in storage
+// User represent a persisted user
 type User struct {
 	EMail    string
 	Password []byte
 	Claims   map[string]interface{}
 }
 
-var ErrUserNotFound = errors.New("could not found user")
+// ErrUserNotFound returned when requested user not found
+var ErrUserNotFound = errors.New("user not found")
+
+// ErrUserAlreadyExists returned when given user already exists
 var ErrUserAlreadyExists = errors.New("user already exists")
 
 // CreateUser persists the given user in database

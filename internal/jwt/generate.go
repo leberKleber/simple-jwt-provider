@@ -16,6 +16,7 @@ var timeNow = time.Now
 var uuidNewRandom = uuid.NewRandom
 var x509ParseECPrivateKey = x509.ParseECPrivateKey
 
+// Generator should be created via NewGenerator and creates JWTs via Generate with static and custom claims
 type Generator struct {
 	jwtLifetime   time.Duration
 	privateKey    *ecdsa.PrivateKey
@@ -70,7 +71,7 @@ func (g Generator) Generate(email string, userClaims map[string]interface{}) (st
 		claims = userClaims
 	}
 
-	//standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
+	// standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
 	claims["aud"] = g.privateClaims.audience      //Audience
 	claims["exp"] = now.Add(g.jwtLifetime).Unix() //ExpiresAt
 	claims["jit"] = jwtID                         //Id
@@ -79,8 +80,8 @@ func (g Generator) Generate(email string, userClaims map[string]interface{}) (st
 	claims["nbf"] = now.Unix()                    //NotBefore
 	claims["sub"] = g.privateClaims.subject       //Subject
 
-	//public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
-	claims["email"] = email //Recipient
+	// public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+	claims["email"] = email // Recipient
 
 	unsignedToken := jwt.NewWithClaims(jwt.SigningMethodES512, claims)
 
