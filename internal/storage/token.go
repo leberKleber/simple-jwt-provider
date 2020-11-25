@@ -6,10 +6,13 @@ import (
 	"time"
 )
 
-var ErrTokenNotFound = errors.New("no token has been deleted")
+// ErrTokenNotFound returned when no token could be found
+var ErrTokenNotFound = errors.New("no token found")
 
+// TokenTypeReset identifies a token as reset-token. Then it can only be user for password-reset
 const TokenTypeReset string = "reset"
 
+// Token represent a persisted token
 type Token struct {
 	ID        int64
 	EMail     string
@@ -69,7 +72,7 @@ func (s Storage) DeleteToken(id int64) error {
 	if err != nil {
 		return fmt.Errorf("could not get num of affected row: %w", err)
 	}
-	if i != 1 {
+	if i < 1 {
 		return ErrTokenNotFound
 	}
 

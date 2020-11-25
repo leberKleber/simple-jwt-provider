@@ -10,6 +10,8 @@ import (
 const blankedPassword = "**********"
 
 var bcryptCost = 12
+
+// ErrUserAlreadyExists returned when given user already exists
 var ErrUserAlreadyExists = errors.New("user already exists")
 
 // User is the representation of a user for use in internal

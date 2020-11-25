@@ -9,8 +9,13 @@ import (
 	"time"
 )
 
+// ErrIncorrectPassword returned when user authentication failed cause incorrect password
 var ErrIncorrectPassword = errors.New("password incorrect")
+
+// ErrUserNotFound returned when requested user not found
 var ErrUserNotFound = errors.New("user not found")
+
+// ErrNoValidTokenFound returned when requested user has no valid token
 var ErrNoValidTokenFound = errors.New("no valid token found")
 var nowFunc = time.Now
 
@@ -79,7 +84,7 @@ func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
 	var t *storage.Token
 	for _, token := range tokens {
 		if token.Type == storage.TokenTypeReset {
-			//TODO check lifetime
+			// TODO check lifetime
 			t = &token
 			break
 		}
@@ -113,7 +118,7 @@ func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
 	return nil
 }
 
-//generate 64 char long hex token  (32 bytes == 64 hex chars)
+// generate 64 char long hex token  (32 bytes == 64 hex chars)
 var generateHEXToken = func() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
