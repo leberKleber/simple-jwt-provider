@@ -62,7 +62,7 @@ func (s *Server) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//when email has not been set 'notFoundHandler' handler will be used
+	// when email has not been set 'notFoundHandler' handler will be used
 
 	user, err := s.p.GetUser(email)
 	if err != nil {
@@ -95,7 +95,7 @@ func (s *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//when email has not been set 'notFoundHandler' handler will be used
+	// when email has not been set 'notFoundHandler' handler will be used
 
 	var user User
 	err = json.NewDecoder(r.Body).Decode(&user)
@@ -143,7 +143,7 @@ func (s *Server) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//when email has not been set 'notFoundHandler' handler will be used
+	// when email has not been set 'notFoundHandler' handler will be used
 
 	err = s.p.DeleteUser(email)
 	if err != nil {

@@ -72,7 +72,7 @@ func TestNewConfig(t *testing.T) {
 	fieldEqual(t, "db>username", cfg.DB.Username, dbUsername)
 	fieldEqual(t, "db>password", cfg.DB.Password, dbPassword)
 	fieldEqual(t, "db>migrationsFolderPath", cfg.DB.MigrationsFolderPath, dbMigrationsFolderPath)
-	//noinspection GoBoolExpressions
+	// noinspection GoBoolExpressions
 	fieldEqual(t, "adminAPI>enable", cfg.AdminAPI.Enable, expectedAdminAPIEnable)
 	fieldEqual(t, "adminAPI>username", cfg.AdminAPI.Username, adminAPIUsername)
 	fieldEqual(t, "adminAPI>password", cfg.AdminAPI.Password, adminAPIPassword)
@@ -81,7 +81,7 @@ func TestNewConfig(t *testing.T) {
 	fieldEqual(t, "mail>smtpPort", cfg.Mail.SMTPPort, expectedMailSMTPPort)
 	fieldEqual(t, "mail>smtpUsername", cfg.Mail.SMTPUsername, mailSMTPUsername)
 	fieldEqual(t, "mail>smtpPassword", cfg.Mail.SMTPPassword, mailSMTPPassword)
-	//noinspection GoBoolExpressions
+	// noinspection GoBoolExpressions
 	fieldEqual(t, "mail>tls>insecureSkipVerify", cfg.Mail.TLS.InsecureSkipVerify, expectedMailTLSServerName)
 	fieldEqual(t, "mail>tls>serverName", cfg.Mail.TLS.ServerName, mailTLSServerName)
 }
@@ -108,7 +108,7 @@ func TestNewConfigWithAdminAPIConstraint(t *testing.T) {
 	setEnv(t, "SJP_MAIL_TLS_INSECURE_SKIP_VERIFY", "true")
 	setEnv(t, "SJP_MAIL_TLS_SERVER_NAME", "myMailTLSServerName")
 
-	//without username
+	// without username
 	setEnv(t, "SJP_ADMIN_API_ENABLE", "true")
 	setEnv(t, "SJP_ADMIN_API_USERNAME", "")
 	setEnv(t, "SJP_ADMIN_API_PASSWORD", "myAdminAPIPassword")
@@ -119,7 +119,7 @@ func TestNewConfigWithAdminAPIConstraint(t *testing.T) {
 
 	}
 
-	//without password
+	// without password
 	setEnv(t, "SJP_ADMIN_API_ENABLE", "true")
 	setEnv(t, "SJP_ADMIN_API_USERNAME", "myAdminAPIUsername")
 	setEnv(t, "SJP_ADMIN_API_PASSWORD", "")

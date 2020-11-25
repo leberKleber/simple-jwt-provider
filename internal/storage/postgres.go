@@ -9,12 +9,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var sqlOpen = sql.Open
 var postgresWithInstance = postgres.WithInstance
 var migrateNewWithDatabaseInstance = func(sourceURL string, databaseName string, databaseInstance database.Driver) (migration, error) {
 	m, e := migrate.NewWithDatabaseInstance(sourceURL, databaseName, databaseInstance)
 	return m, e
 }
 
+// Storage should be created via New and provides user and token database operation. Before access database Migrate should be called
 type Storage struct {
 	db     *sql.DB
 	dbName string
@@ -32,7 +34,7 @@ func New(dbHost string, dbPort int, dbUsername, dbPassword, dbName string, sslMo
 		sslMode = "enable"
 	}
 
-	db, err := sql.Open(
+	db, err := sqlOpen(
 		"postgres",
 		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s connect_timeout=30", dbHost, dbPort, dbUsername, dbPassword, dbName, sslMode),
 	)
