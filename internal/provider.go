@@ -4,8 +4,8 @@ import (
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 )
 
-//go:generate moq -out storage_moq_test.go . Storage
 // Storage encapsulates storage.Storage to generate mocks
+//go:generate moq -out storage_moq_test.go . Storage
 type Storage interface {
 	User(email string) (storage.User, error)
 	CreateUser(user storage.User) error
@@ -16,14 +16,14 @@ type Storage interface {
 	DeleteToken(id int64) error
 }
 
-//go:generate moq -out jwt_generator_moq_test.go . JWTGenerator
 // JWTGenerator encapsulates jwt.Generator to generate mocks
+//go:generate moq -out jwt_generator_moq_test.go . JWTGenerator
 type JWTGenerator interface {
 	Generate(email string, userClaims map[string]interface{}) (string, error)
 }
 
-//go:generate moq -out mailer_moq_test.go . Mailer
 // Mailer encapsulates mailer.Mailer to generate mocks
+//go:generate moq -out mailer_moq_test.go . Mailer
 type Mailer interface {
 	SendPasswordResetRequestEMail(recipient, passwordResetToken string, claims map[string]interface{}) error
 }
