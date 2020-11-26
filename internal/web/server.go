@@ -9,8 +9,8 @@ import (
 	"net/http"
 )
 
-//go:generate moq -out provider_moq_test.go . Provider
 // Provider encapsulates internal.Provider to generate mocks
+//go:generate moq -out provider_moq_test.go . Provider
 type Provider interface {
 	Login(email, password string) (string, error)
 	CreatePasswordResetRequest(email string) error
