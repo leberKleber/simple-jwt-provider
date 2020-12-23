@@ -33,7 +33,7 @@ func TestNewGenerator(t *testing.T) {
 		t.Fatalf("failed to crreate new generator: %s", err)
 	}
 
-	generatedJWT, err := g.Generate("myMailAddress", map[string]interface{}{"myCustomClaim": "mialc"})
+	generatedJWT, err := g.GenerateAccessToken("myMailAddress", map[string]interface{}{"myCustomClaim": "mialc"})
 	if err != nil {
 		t.Fatalf("failed to generate jwt: %s", err)
 	}
@@ -114,7 +114,7 @@ func TestGenerator_Generate_FailedToGenerateUUID(t *testing.T) {
 		return uuid.UUID{}, errors.New("nope")
 	}
 
-	_, err := Generator{}.Generate("my.email.de", nil)
+	_, err := Generator{}.GenerateAccessToken("my.email.de", nil)
 
 	expectedError := errors.New("failed to generate jwt-id: nope")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {

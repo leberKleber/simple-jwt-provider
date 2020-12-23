@@ -12,7 +12,7 @@ import (
 // Provider encapsulates internal.Provider to generate mocks
 //go:generate moq -out provider_moq_test.go . Provider
 type Provider interface {
-	Login(email, password string) (string, error)
+	Login(email, password string) (string, string, error)
 	CreatePasswordResetRequest(email string) error
 	ResetPassword(email, resetToken, password string) error
 	CreateUser(user internal.User) error

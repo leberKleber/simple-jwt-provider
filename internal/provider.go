@@ -19,7 +19,8 @@ type Storage interface {
 // JWTGenerator encapsulates jwt.Generator to generate mocks
 //go:generate moq -out jwt_generator_moq_test.go . JWTGenerator
 type JWTGenerator interface {
-	Generate(email string, userClaims map[string]interface{}) (string, error)
+	GenerateAccessToken(email string, userClaims map[string]interface{}) (string, error)
+	GenerateRefreshToken(email string) (string, error)
 }
 
 // Mailer encapsulates mailer.Mailer to generate mocks

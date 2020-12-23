@@ -30,7 +30,7 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwt, err := s.p.Login(requestBody.EMail, requestBody.Password)
+	accessToken, refreshToken, err := s.p.Login(requestBody.EMail, requestBody.Password)
 	if err != nil {
 		if errors.Is(err, internal.ErrIncorrectPassword) || errors.Is(err, internal.ErrUserNotFound) {
 			logrus.WithField("email", requestBody.EMail).Warn("Somebody tried to login with invalid credentials")
@@ -44,9 +44,11 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = json.NewEncoder(w).Encode(struct {
-		AccessToken string `json:"access_token"`
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
 	}{
-		AccessToken: jwt,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 	if err != nil {
 		logrus.WithError(err).Error("Failed marshal request response")

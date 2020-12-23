@@ -15,7 +15,8 @@ func TestLoginHandler(t *testing.T) {
 	tests := []struct {
 		name                 string
 		requestBody          string
-		providerToken        string
+		providerAccessToken  string
+		providerRefreshToken string
 		providerError        error
 		expectedEMail        string
 		expectedPassword     string
@@ -27,35 +28,37 @@ func TestLoginHandler(t *testing.T) {
 			requestBody:          `{"email": "test.test@test.test", "password": "s3cr3t"}`,
 			expectedEMail:        "test.test@test.test",
 			expectedPassword:     "s3cr3t",
-			providerToken:        "myNewJWT",
+			providerAccessToken:  "myAccessJWT",
+			providerRefreshToken: "myRefreshJWT",
 			expectedResponseCode: http.StatusOK,
-			expectedResponseBody: `{"access_token":"myNewJWT"}`,
+			expectedResponseBody: `{"access_token":"myAccessJWT","refresh_token":"myRefreshJWT"}`,
 		},
 		{
 			name:                 "Invalid JSON",
 			requestBody:          `{"password s3cr3t"}`,
-			providerToken:        "myNewJWT",
+			providerAccessToken:  "myAccessJWT",
+			providerRefreshToken: "myRefreshJWT",
 			expectedResponseCode: http.StatusBadRequest,
 			expectedResponseBody: `{"message":"invalid JSON"}`,
 		},
 		{
 			name:                 "Missing Recipient",
 			requestBody:          `{"password": "s3cr3t"}`,
-			providerToken:        "myNewJWT",
+			providerAccessToken:  "myNewJWT",
 			expectedResponseCode: http.StatusBadRequest,
 			expectedResponseBody: `{"message":"email must be set"}`,
 		},
 		{
 			name:                 "Missing Password",
 			requestBody:          `{"email": "test.test@test.test"}`,
-			providerToken:        "myNewJWT",
+			providerAccessToken:  "myNewJWT",
 			expectedResponseCode: http.StatusBadRequest,
 			expectedResponseBody: `{"message":"password must be set"}`,
 		},
 		{
 			name:                 "Incorrect Password",
 			requestBody:          `{"email": "test.test@test.test", "password": "n0p3"}`,
-			providerToken:        "myNewJWT",
+			providerAccessToken:  "myNewJWT",
 			providerError:        internal.ErrIncorrectPassword,
 			expectedEMail:        "test.test@test.test",
 			expectedPassword:     "n0p3",
@@ -87,11 +90,11 @@ func TestLoginHandler(t *testing.T) {
 			var givenEMail, givenPassword string
 
 			toTest := NewServer(&ProviderMock{
-				LoginFunc: func(email string, password string) (string, error) {
+				LoginFunc: func(email string, password string) (string, string, error) {
 					givenEMail = email
 					givenPassword = password
 
-					return tt.providerToken, tt.providerError
+					return tt.providerAccessToken, tt.providerRefreshToken, tt.providerError
 				},
 			}, false, "", "")
 			testServer := httptest.NewServer(toTest.h)
@@ -143,7 +146,7 @@ func TestLoginHandler(t *testing.T) {
 			}
 
 			if !bytes.Equal(compactedRespBodyAsBytes, []byte(tt.expectedResponseBody)) {
-				t.Errorf("Request response body is not as expected. Expected: %q, Given: %q", tt.expectedResponseBody, string(compactedRespBodyAsBytes))
+				t.Errorf("Request response body is not as expected. Expected: \n%q, \nGiven: \n%q", tt.expectedResponseBody, string(compactedRespBodyAsBytes))
 			}
 		})
 	}

@@ -56,10 +56,10 @@ func NewGenerator(privateKey string, jwtLifetime time.Duration, jwtAudience, jwt
 	}, err
 }
 
-// Generate generates a valid jwt based on the Generator.privateKey. The jwt is issued to the given email and enriched
+// GenerateAccessToken generates a valid access-jwt based on the Generator.privateKey. The jwt is issued to the given email and enriched
 // with the given claims.
 // 'userClaims' can be contain all json compatible types
-func (g Generator) Generate(email string, userClaims map[string]interface{}) (string, error) {
+func (g Generator) GenerateAccessToken(email string, userClaims map[string]interface{}) (string, error) {
 	now := timeNow()
 	jwtID, err := uuidNewRandom()
 	if err != nil {
@@ -81,14 +81,16 @@ func (g Generator) Generate(email string, userClaims map[string]interface{}) (st
 	claims["sub"] = g.privateClaims.subject       //Subject
 
 	// public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
-	claims["email"] = email // Recipient
+	claims["email"] = email // Preferred e-mail address
 
-	unsignedToken := jwt.NewWithClaims(jwt.SigningMethodES512, claims)
-
-	signedToken, err := unsignedToken.SignedString(g.privateKey)
+	token, err := jwt.NewWithClaims(jwt.SigningMethodES512, claims).SignedString(g.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign token: %w", err)
 	}
 
-	return signedToken, nil
+	return token, nil
+}
+
+func (g Generator) GenerateRefreshToken(email string) (string, error) {
+	return "<refresh_token>", nil //TODO generate
 }

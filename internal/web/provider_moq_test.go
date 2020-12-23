@@ -40,7 +40,7 @@ var _ Provider = &ProviderMock{}
 //             GetUserFunc: func(email string) (internal.User, error) {
 // 	               panic("mock out the GetUser method")
 //             },
-//             LoginFunc: func(email string, password string) (string, error) {
+//             LoginFunc: func(email string, password string) (string, string, error) {
 // 	               panic("mock out the Login method")
 //             },
 //             ResetPasswordFunc: func(email string, resetToken string, password string) error {
@@ -69,7 +69,7 @@ type ProviderMock struct {
 	GetUserFunc func(email string) (internal.User, error)
 
 	// LoginFunc mocks the Login method.
-	LoginFunc func(email string, password string) (string, error)
+	LoginFunc func(email string, password string) (string, string, error)
 
 	// ResetPasswordFunc mocks the ResetPassword method.
 	ResetPasswordFunc func(email string, resetToken string, password string) error
@@ -250,7 +250,7 @@ func (mock *ProviderMock) GetUserCalls() []struct {
 }
 
 // Login calls LoginFunc.
-func (mock *ProviderMock) Login(email string, password string) (string, error) {
+func (mock *ProviderMock) Login(email string, password string) (string, string, error) {
 	if mock.LoginFunc == nil {
 		panic("ProviderMock.LoginFunc: method is nil but Provider.Login was just called")
 	}

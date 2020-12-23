@@ -19,24 +19,34 @@ var ErrUserNotFound = errors.New("user not found")
 var ErrNoValidTokenFound = errors.New("no valid token found")
 var nowFunc = time.Now
 
-// Login checks email / password combination and return a new jwt if correct.
+// Login checks email / password combination and return a new access and refresh token if correct.
 // return ErrIncorrectPassword when password is incorrect
 // return ErrUserNotFound when user not found
-func (p Provider) Login(email, password string) (string, error) {
+func (p Provider) Login(email, password string) (accessToken string, refreshToken string, err error) {
 	u, err := p.Storage.User(email)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			return "", ErrUserNotFound
+			return "", "", ErrUserNotFound
 		}
-		return "", fmt.Errorf("failed to find user with email %q: %w", email, err)
+		return "", "", fmt.Errorf("failed to find user with email %q: %w", email, err)
 	}
 
 	err = bcrypt.CompareHashAndPassword(u.Password, []byte(password))
 	if err != nil {
-		return "", ErrIncorrectPassword
+		return "", "", ErrIncorrectPassword
 	}
 
-	return p.JWTGenerator.Generate(email, u.Claims)
+	accessToken, err = p.JWTGenerator.GenerateAccessToken(email, u.Claims)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate access-token: %w", err)
+	}
+
+	refreshToken, err = p.JWTGenerator.GenerateRefreshToken(email)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate refresh-token: %w", err)
+	}
+
+	return accessToken, refreshToken, nil
 }
 
 // CreatePasswordResetRequest send a password-reset-request email to the give address.

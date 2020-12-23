@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	lockJWTGeneratorMockGenerate sync.RWMutex
+	lockJWTGeneratorMockGenerateAccessToken  sync.RWMutex
+	lockJWTGeneratorMockGenerateRefreshToken sync.RWMutex
 )
 
 // Ensure, that JWTGeneratorMock does implement JWTGenerator.
@@ -21,8 +22,11 @@ var _ JWTGenerator = &JWTGeneratorMock{}
 //
 //         // make and configure a mocked JWTGenerator
 //         mockedJWTGenerator := &JWTGeneratorMock{
-//             GenerateFunc: func(email string, userClaims map[string]interface{}) (string, error) {
-// 	               panic("mock out the Generate method")
+//             GenerateAccessTokenFunc: func(email string, userClaims map[string]interface{}) (string, error) {
+// 	               panic("mock out the GenerateAccessToken method")
+//             },
+//             GenerateRefreshTokenFunc: func(email string) (string, error) {
+// 	               panic("mock out the GenerateRefreshToken method")
 //             },
 //         }
 //
@@ -31,25 +35,33 @@ var _ JWTGenerator = &JWTGeneratorMock{}
 //
 //     }
 type JWTGeneratorMock struct {
-	// GenerateFunc mocks the Generate method.
-	GenerateFunc func(email string, userClaims map[string]interface{}) (string, error)
+	// GenerateAccessTokenFunc mocks the GenerateAccessToken method.
+	GenerateAccessTokenFunc func(email string, userClaims map[string]interface{}) (string, error)
+
+	// GenerateRefreshTokenFunc mocks the GenerateRefreshToken method.
+	GenerateRefreshTokenFunc func(email string) (string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// Generate holds details about calls to the Generate method.
-		Generate []struct {
+		// GenerateAccessToken holds details about calls to the GenerateAccessToken method.
+		GenerateAccessToken []struct {
 			// Email is the email argument value.
 			Email string
 			// UserClaims is the userClaims argument value.
 			UserClaims map[string]interface{}
 		}
+		// GenerateRefreshToken holds details about calls to the GenerateRefreshToken method.
+		GenerateRefreshToken []struct {
+			// Email is the email argument value.
+			Email string
+		}
 	}
 }
 
-// Generate calls GenerateFunc.
-func (mock *JWTGeneratorMock) Generate(email string, userClaims map[string]interface{}) (string, error) {
-	if mock.GenerateFunc == nil {
-		panic("JWTGeneratorMock.GenerateFunc: method is nil but JWTGenerator.Generate was just called")
+// GenerateAccessToken calls GenerateAccessTokenFunc.
+func (mock *JWTGeneratorMock) GenerateAccessToken(email string, userClaims map[string]interface{}) (string, error) {
+	if mock.GenerateAccessTokenFunc == nil {
+		panic("JWTGeneratorMock.GenerateAccessTokenFunc: method is nil but JWTGenerator.GenerateAccessToken was just called")
 	}
 	callInfo := struct {
 		Email      string
@@ -58,16 +70,16 @@ func (mock *JWTGeneratorMock) Generate(email string, userClaims map[string]inter
 		Email:      email,
 		UserClaims: userClaims,
 	}
-	lockJWTGeneratorMockGenerate.Lock()
-	mock.calls.Generate = append(mock.calls.Generate, callInfo)
-	lockJWTGeneratorMockGenerate.Unlock()
-	return mock.GenerateFunc(email, userClaims)
+	lockJWTGeneratorMockGenerateAccessToken.Lock()
+	mock.calls.GenerateAccessToken = append(mock.calls.GenerateAccessToken, callInfo)
+	lockJWTGeneratorMockGenerateAccessToken.Unlock()
+	return mock.GenerateAccessTokenFunc(email, userClaims)
 }
 
-// GenerateCalls gets all the calls that were made to Generate.
+// GenerateAccessTokenCalls gets all the calls that were made to GenerateAccessToken.
 // Check the length with:
-//     len(mockedJWTGenerator.GenerateCalls())
-func (mock *JWTGeneratorMock) GenerateCalls() []struct {
+//     len(mockedJWTGenerator.GenerateAccessTokenCalls())
+func (mock *JWTGeneratorMock) GenerateAccessTokenCalls() []struct {
 	Email      string
 	UserClaims map[string]interface{}
 } {
@@ -75,8 +87,39 @@ func (mock *JWTGeneratorMock) GenerateCalls() []struct {
 		Email      string
 		UserClaims map[string]interface{}
 	}
-	lockJWTGeneratorMockGenerate.RLock()
-	calls = mock.calls.Generate
-	lockJWTGeneratorMockGenerate.RUnlock()
+	lockJWTGeneratorMockGenerateAccessToken.RLock()
+	calls = mock.calls.GenerateAccessToken
+	lockJWTGeneratorMockGenerateAccessToken.RUnlock()
+	return calls
+}
+
+// GenerateRefreshToken calls GenerateRefreshTokenFunc.
+func (mock *JWTGeneratorMock) GenerateRefreshToken(email string) (string, error) {
+	if mock.GenerateRefreshTokenFunc == nil {
+		panic("JWTGeneratorMock.GenerateRefreshTokenFunc: method is nil but JWTGenerator.GenerateRefreshToken was just called")
+	}
+	callInfo := struct {
+		Email string
+	}{
+		Email: email,
+	}
+	lockJWTGeneratorMockGenerateRefreshToken.Lock()
+	mock.calls.GenerateRefreshToken = append(mock.calls.GenerateRefreshToken, callInfo)
+	lockJWTGeneratorMockGenerateRefreshToken.Unlock()
+	return mock.GenerateRefreshTokenFunc(email)
+}
+
+// GenerateRefreshTokenCalls gets all the calls that were made to GenerateRefreshToken.
+// Check the length with:
+//     len(mockedJWTGenerator.GenerateRefreshTokenCalls())
+func (mock *JWTGeneratorMock) GenerateRefreshTokenCalls() []struct {
+	Email string
+} {
+	var calls []struct {
+		Email string
+	}
+	lockJWTGeneratorMockGenerateRefreshToken.RLock()
+	calls = mock.calls.GenerateRefreshToken
+	lockJWTGeneratorMockGenerateRefreshToken.RUnlock()
 	return calls
 }
