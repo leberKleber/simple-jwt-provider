@@ -16,6 +16,8 @@ var timeNow = time.Now
 var uuidNewRandom = uuid.NewRandom
 var x509ParseECPrivateKey = x509.ParseECPrivateKey
 
+const refreshTokenLifetime = 7 * 24 * time.Hour
+
 // Generator should be created via NewGenerator and creates JWTs via Generate with static and custom claims
 type Generator struct {
 	jwtLifetime   time.Duration
@@ -85,12 +87,40 @@ func (g Generator) GenerateAccessToken(email string, userClaims map[string]inter
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodES512, claims).SignedString(g.privateKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign token: %w", err)
+		return "", fmt.Errorf("failed to sign access-token: %w", err)
 	}
 
 	return token, nil
 }
 
 func (g Generator) GenerateRefreshToken(email string) (string, error) {
-	return "<refresh_token>", nil //TODO generate
+	// TODO fill with more logical logic
+	now := timeNow()
+	jwtID, err := uuidNewRandom()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate jwt-id: %w", err)
+	}
+
+	claims := jwt.MapClaims{}
+
+	// standard claims by https://tools.ietf.org/html/rfc7519#section-4.1
+	claims["aud"] = g.privateClaims.audience             //Audience
+	claims["exp"] = now.Add(refreshTokenLifetime).Unix() //ExpiresAt
+	claims["jit"] = jwtID                                //Id
+	claims["iat"] = now.Unix()                           //IssuedAt
+	claims["iss"] = g.privateClaims.issuer               //Issuer
+	claims["nbf"] = now.Unix()                           //NotBefore
+	claims["sub"] = g.privateClaims.subject              //Subject
+
+	// public claims by https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+	claims["email"] = email // Preferred e-mail address
+
+	claims["refresh"] = true // Identify as refresh-token
+
+	token, err := jwt.NewWithClaims(jwt.SigningMethodES512, claims).SignedString(g.privateKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign refresh-token: %w", err)
+	}
+
+	return token, nil
 }

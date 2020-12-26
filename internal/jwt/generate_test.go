@@ -27,7 +27,32 @@ Tz/0SPO3tPL1Ym3V0QH7TfnTf7EueabJqPdsSGR6uvbb2YOA9vy4OU8SXp/9a/4x
 r94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==
 -----END EC PRIVATE KEY-----`
 
-func TestNewGenerator(t *testing.T) {
+func TestNewGenerator_WithoutPrivateKey(t *testing.T) {
+	_, err := NewGenerator("", 4*time.Hour, "audience", "issuer", "subject")
+
+	expectedError := errors.New("no valid private key found")
+	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
+		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
+	}
+}
+
+func TestNewGenerator_InvalidPrivateKey(t *testing.T) {
+	oldX509ParseECPrivateKey := x509ParseECPrivateKey
+	defer func() { x509ParseECPrivateKey = oldX509ParseECPrivateKey }()
+
+	x509ParseECPrivateKey = func(der []byte) (*ecdsa.PrivateKey, error) {
+		return nil, errors.New("errrooooooorrrr")
+	}
+
+	_, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
+
+	expectedError := errors.New("failed to parse private-key: errrooooooorrrr")
+	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
+		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
+	}
+}
+
+func TestNewGenerator_GenerateAccessToken(t *testing.T) {
 	g, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
 	if err != nil {
 		t.Fatalf("failed to crreate new generator: %s", err)
@@ -37,7 +62,6 @@ func TestNewGenerator(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to generate jwt: %s", err)
 	}
-
 	claims := validateJWT(t, generatedJWT)
 	expectedJWTAudience := "audience"
 	if claims["aud"] != expectedJWTAudience {
@@ -81,32 +105,7 @@ func TestNewGenerator(t *testing.T) {
 	}
 }
 
-func TestNewGenerator_WithoutPrivateKey(t *testing.T) {
-	_, err := NewGenerator("", 4*time.Hour, "audience", "issuer", "subject")
-
-	expectedError := errors.New("no valid private key found")
-	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
-		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
-	}
-}
-
-func TestNewGenerator_InvalidPrivateKey(t *testing.T) {
-	oldX509ParseECPrivateKey := x509ParseECPrivateKey
-	defer func() { x509ParseECPrivateKey = oldX509ParseECPrivateKey }()
-
-	x509ParseECPrivateKey = func(der []byte) (*ecdsa.PrivateKey, error) {
-		return nil, errors.New("errrooooooorrrr")
-	}
-
-	_, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
-
-	expectedError := errors.New("failed to parse private-key: errrooooooorrrr")
-	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
-		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
-	}
-}
-
-func TestGenerator_Generate_FailedToGenerateUUID(t *testing.T) {
+func TestNewGenerator_GenerateAccessToken_FailedToGenerateUUID(t *testing.T) {
 	oldUUIDNewRandom := uuidNewRandom
 	defer func() { uuidNewRandom = oldUUIDNewRandom }()
 
@@ -115,6 +114,74 @@ func TestGenerator_Generate_FailedToGenerateUUID(t *testing.T) {
 	}
 
 	_, err := Generator{}.GenerateAccessToken("my.email.de", nil)
+
+	expectedError := errors.New("failed to generate jwt-id: nope")
+	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
+		t.Fatalf("unexpected error. Expected: %q. Gven:: %q", expectedError, err)
+	}
+}
+
+func TestNewGenerator_GenerateRefreshToken(t *testing.T) {
+	g, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
+	if err != nil {
+		t.Fatalf("failed to crreate new generator: %s", err)
+	}
+
+	generatedJWT, err := g.GenerateRefreshToken("myMailAddress")
+	if err != nil {
+		t.Fatalf("failed to generate jwt: %s", err)
+	}
+	claims := validateJWT(t, generatedJWT)
+	expectedJWTAudience := "audience"
+	if claims["aud"] != expectedJWTAudience {
+		t.Errorf("unexpected aud-privateClaim value. Expected: %q. Given: %q", expectedJWTAudience, claims["aud"])
+	}
+
+	expectedJWTIssuer := "issuer"
+	if claims["iss"] != expectedJWTIssuer {
+		t.Errorf("unexpected iss-privateClaim value. Expected: %q. Given: %q", expectedJWTIssuer, claims["iss"])
+	}
+
+	expectedJWTSubject := "subject"
+	if claims["sub"] != expectedJWTSubject {
+		t.Errorf("unexpected sub-privateClaim value. Expected: %q. Given: %q", expectedJWTSubject, claims["sub"])
+	}
+
+	if claims["refresh"] != true {
+		t.Errorf("unexpected refresh value. Expected: %t. Given: %q", true, claims["refresh"])
+	}
+
+	if claims["id"] == "" {
+		t.Error("jwt id has not been set")
+	}
+
+	if claims["exp"] == "" {
+		t.Error("jwt exp has not been set")
+	}
+
+	if claims["iat"] == "" {
+		t.Error("jwt iat has not been set")
+	}
+
+	if claims["nbf"] == "" {
+		t.Error("jwt nbf has not been set")
+	}
+
+	expectedJWTEMail := "myMailAddress"
+	if claims["email"] != expectedJWTEMail {
+		t.Errorf("unexpected email-privateClaim value. Expected: %q. Given: %q", expectedJWTEMail, claims["email"])
+	}
+}
+
+func TestNewGenerator_GenerateRefreshToken_FailedToGenerateUUID(t *testing.T) {
+	oldUUIDNewRandom := uuidNewRandom
+	defer func() { uuidNewRandom = oldUUIDNewRandom }()
+
+	uuidNewRandom = func() (uuid.UUID, error) {
+		return uuid.UUID{}, errors.New("nope")
+	}
+
+	_, err := Generator{}.GenerateRefreshToken("my.email.de")
 
 	expectedError := errors.New("failed to generate jwt-id: nope")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
