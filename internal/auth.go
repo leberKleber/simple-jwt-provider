@@ -17,12 +17,19 @@ var ErrUserNotFound = errors.New("user not found")
 
 // ErrNoValidTokenFound returned when requested user has no valid token
 var ErrNoValidTokenFound = errors.New("no valid token found")
+
+// ErrInvalidToken returned when the give token is not valid
+var ErrInvalidToken = errors.New("given token is invalid")
+
+// ErrInvalidToken returned when the give token is not parsable
+var ErrTokenNotParsable = errors.New("given token is not parsable")
+
 var nowFunc = time.Now
 
 // Login checks email / password combination and return a new access and refresh token if correct.
 // return ErrIncorrectPassword when password is incorrect
 // return ErrUserNotFound when user not found
-func (p Provider) Login(email, password string) (accessToken string, refreshToken string, err error) {
+func (p Provider) Login(email, password string) (accessToken, refreshToken string, err error) {
 	u, err := p.Storage.User(email)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
@@ -36,17 +43,54 @@ func (p Provider) Login(email, password string) (accessToken string, refreshToke
 		return "", "", ErrIncorrectPassword
 	}
 
-	accessToken, err = p.JWTGenerator.GenerateAccessToken(email, u.Claims)
+	accessToken, err = p.JWTProvider.GenerateAccessToken(email, u.Claims)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate access-token: %w", err)
 	}
 
-	refreshToken, err = p.JWTGenerator.GenerateRefreshToken(email)
+	refreshToken, err = p.JWTProvider.GenerateRefreshToken(email)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate refresh-token: %w", err)
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+// Refresh checks user and token validity and return a new access and refresh token if everything is valid
+func (p Provider) Refresh(refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+	isValid, claims, err := p.JWTProvider.IsTokenValid(refreshToken)
+	if err != nil {
+		return "", "", ErrTokenNotParsable
+	}
+
+	if !isValid {
+		return "", "", ErrInvalidToken
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		return "", "", errors.New("email claim is not parsable as string")
+	}
+
+	u, err := p.Storage.User(email)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return "", "", ErrUserNotFound
+		}
+		return "", "", fmt.Errorf("failed to find user with email %q: %w", email, err)
+	}
+
+	newAccessToken, err = p.JWTProvider.GenerateAccessToken(email, u.Claims)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate access-token: %w", err)
+	}
+
+	newRefreshToken, err = p.JWTProvider.GenerateRefreshToken(email)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate refresh-token: %w", err)
+	}
+
+	return newAccessToken, newRefreshToken, nil
 }
 
 // CreatePasswordResetRequest send a password-reset-request email to the give address.

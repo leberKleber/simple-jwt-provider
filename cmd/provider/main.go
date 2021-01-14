@@ -38,7 +38,7 @@ func main() {
 		logrus.WithError(err).Fatal("Could not migrate database")
 	}
 
-	jwtGenerator, err := jwt.NewGenerator(cfg.JWT.PrivateKey, cfg.JWT.Lifetime, cfg.JWT.Audience, cfg.JWT.Issuer, cfg.JWT.Subject)
+	jwtGenerator, err := jwt.NewProvider(cfg.JWT.PrivateKey, cfg.JWT.Lifetime, cfg.JWT.Audience, cfg.JWT.Issuer, cfg.JWT.Subject)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to create jwt generator")
 	}
@@ -55,7 +55,7 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to create mailer")
 	}
 
-	provider := &internal.Provider{Storage: s, JWTGenerator: jwtGenerator, Mailer: m}
+	provider := &internal.Provider{Storage: s, JWTProvider: jwtGenerator, Mailer: m}
 	server := web.NewServer(provider, cfg.AdminAPI.Enable, cfg.AdminAPI.Username, cfg.AdminAPI.Password)
 
 	err = server.ListenAndServe(cfg.ServerAddress)

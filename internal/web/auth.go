@@ -57,6 +57,48 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) refreshHandler(w http.ResponseWriter, r *http.Request) {
+	requestBody := struct {
+		RefreshToken string `json:"refresh_token"`
+	}{}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+
+	if requestBody.RefreshToken == "" {
+		writeError(w, http.StatusBadRequest, "refresh_token must be set")
+		return
+	}
+
+	newAccessToken, newRefreshToken, err := s.p.Refresh(requestBody.RefreshToken)
+	if err != nil {
+		if errors.Is(err, internal.ErrInvalidToken) || errors.Is(err, internal.ErrUserNotFound) {
+			writeError(w, http.StatusUnauthorized, "invalid refresh-token and/or email")
+			return
+		}
+
+		logrus.WithError(err).Error("Failed to refresh token")
+		writeInternalServerError(w)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	})
+	if err != nil {
+		logrus.WithError(err).Error("Failed marshal request response")
+		writeInternalServerError(w)
+		return
+	}
+}
+
 func (s *Server) passwordResetRequestHandler(w http.ResponseWriter, r *http.Request) {
 	requestBody := struct {
 		EMail string `json:"email"`

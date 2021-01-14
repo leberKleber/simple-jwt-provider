@@ -113,7 +113,7 @@ func TestProvider_Login(t *testing.T) {
 						return tt.dbReturnUser, tt.dbReturnError
 					},
 				},
-				JWTGenerator: &JWTGeneratorMock{
+				JWTProvider: &JWTProviderMock{
 					GenerateAccessTokenFunc: func(email string, userClaims map[string]interface{}) (string, error) {
 						givenGenerateAccessTokenEMail = email
 						givenGenerateAccessTokenUserClaims = userClaims
