@@ -12,48 +12,8 @@ import (
 	"time"
 )
 
-var jwtPubKey = `-----BEGIN PUBLIC KEY-----
-MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBQSa/dFpXRqz6aQQmx6sNpxl3mn8Z
-0o+qgfgOxPAPxu+JppsCGqrX/6SeUI6kz3AFVABGBU8/9Ejzt7Ty9WJt1dEB+035
-03+xLnmmyaj3bEhkerr229mDgPb8uDlPEl6f/Wv+Ma/eIIloCo8WJAe8YsviImbF
-hAV1NK8+62/iMCfNj30=
------END PUBLIC KEY-----
-`
-var jwtPrvKey = `-----BEGIN EC PRIVATE KEY-----
-MIHcAgEBBEIASzDZeTVLxcE5KTAmwrKwFjzr5cDrA+tttx9XRUz0K7AlROtj7cMG
-rHu/bdKj7lc2WaW8x/EOrU/FeCcsIL5nTH+gBwYFK4EEACOhgYkDgYYABAFBJr90
-WldGrPppBCbHqw2nGXeafxnSj6qB+A7E8A/G74mmmwIaqtf/pJ5QjqTPcAVUAEYF
-Tz/0SPO3tPL1Ym3V0QH7TfnTf7EueabJqPdsSGR6uvbb2YOA9vy4OU8SXp/9a/4x
-r94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==
------END EC PRIVATE KEY-----`
-
-func TestNewGenerator_WithoutPrivateKey(t *testing.T) {
-	_, err := NewGenerator("", 4*time.Hour, "audience", "issuer", "subject")
-
-	expectedError := errors.New("no valid private key found")
-	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
-		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
-	}
-}
-
-func TestNewGenerator_InvalidPrivateKey(t *testing.T) {
-	oldX509ParseECPrivateKey := x509ParseECPrivateKey
-	defer func() { x509ParseECPrivateKey = oldX509ParseECPrivateKey }()
-
-	x509ParseECPrivateKey = func(der []byte) (*ecdsa.PrivateKey, error) {
-		return nil, errors.New("errrooooooorrrr")
-	}
-
-	_, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
-
-	expectedError := errors.New("failed to parse private-key: errrooooooorrrr")
-	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
-		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
-	}
-}
-
-func TestNewGenerator_GenerateAccessToken(t *testing.T) {
-	g, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
+func TestGenerator_GenerateAccessToken(t *testing.T) {
+	g, err := NewProvider(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
 	if err != nil {
 		t.Fatalf("failed to crreate new generator: %s", err)
 	}
@@ -105,7 +65,7 @@ func TestNewGenerator_GenerateAccessToken(t *testing.T) {
 	}
 }
 
-func TestNewGenerator_GenerateAccessToken_FailedToGenerateUUID(t *testing.T) {
+func TestGenerator_GenerateAccessToken_FailedToGenerateUUID(t *testing.T) {
 	oldUUIDNewRandom := uuidNewRandom
 	defer func() { uuidNewRandom = oldUUIDNewRandom }()
 
@@ -113,7 +73,7 @@ func TestNewGenerator_GenerateAccessToken_FailedToGenerateUUID(t *testing.T) {
 		return uuid.UUID{}, errors.New("nope")
 	}
 
-	_, err := Generator{}.GenerateAccessToken("my.email.de", nil)
+	_, err := Provider{}.GenerateAccessToken("my.email.de", nil)
 
 	expectedError := errors.New("failed to generate jwt-id: nope")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
@@ -121,8 +81,8 @@ func TestNewGenerator_GenerateAccessToken_FailedToGenerateUUID(t *testing.T) {
 	}
 }
 
-func TestNewGenerator_GenerateRefreshToken(t *testing.T) {
-	g, err := NewGenerator(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
+func TestGenerator_GenerateRefreshToken(t *testing.T) {
+	g, err := NewProvider(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
 	if err != nil {
 		t.Fatalf("failed to crreate new generator: %s", err)
 	}
@@ -173,7 +133,7 @@ func TestNewGenerator_GenerateRefreshToken(t *testing.T) {
 	}
 }
 
-func TestNewGenerator_GenerateRefreshToken_FailedToGenerateUUID(t *testing.T) {
+func TestGenerator_GenerateRefreshToken_FailedToGenerateUUID(t *testing.T) {
 	oldUUIDNewRandom := uuidNewRandom
 	defer func() { uuidNewRandom = oldUUIDNewRandom }()
 
@@ -181,7 +141,7 @@ func TestNewGenerator_GenerateRefreshToken_FailedToGenerateUUID(t *testing.T) {
 		return uuid.UUID{}, errors.New("nope")
 	}
 
-	_, err := Generator{}.GenerateRefreshToken("my.email.de")
+	_, err := Provider{}.GenerateRefreshToken("my.email.de")
 
 	expectedError := errors.New("failed to generate jwt-id: nope")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
@@ -191,7 +151,7 @@ func TestNewGenerator_GenerateRefreshToken_FailedToGenerateUUID(t *testing.T) {
 
 func validateJWT(t *testing.T, tokenString string) jwt.MapClaims {
 	claims := jwt.MapClaims{}
-	pubKey, err := decodeECDSApubKey(jwtPubKey)
+	pubKey, err := decodeECDSAPubKey(jwtPubKey)
 	if err != nil {
 		t.Fatalf("Failed to parse public key: %s", err)
 	}
@@ -214,7 +174,7 @@ func validateJWT(t *testing.T, tokenString string) jwt.MapClaims {
 	return claims
 }
 
-func decodeECDSApubKey(pemEncodedPub string) (*ecdsa.PublicKey, error) {
+func decodeECDSAPubKey(pemEncodedPub string) (*ecdsa.PublicKey, error) {
 	blockPub, _ := pem.Decode([]byte(pemEncodedPub))
 	if blockPub == nil {
 		return nil, errors.New("No valid public key found")
