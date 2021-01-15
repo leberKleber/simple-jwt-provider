@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"golang.org/x/crypto/bcrypt"
 	"reflect"
@@ -155,6 +156,206 @@ func TestProvider_Login(t *testing.T) {
 
 			if givenGenerateRefreshTokenEMail != tt.generatorExpectedEMail {
 				t.Errorf("Generator.GenerateRefreshToken email ist not as expected: \nExpected:%s\nGiven:%s", tt.generatorExpectedEMail, givenGenerateRefreshTokenEMail)
+			}
+		})
+	}
+
+}
+
+func TestProvider_Refresh(t *testing.T) {
+	bcryptCost = bcrypt.MinCost
+
+	tests := []struct {
+		name                      string
+		email                     string
+		givenRefreshToken         string
+		givenPassword             string
+		expectedError             error
+		expectedAccessToken       string
+		expectedRefreshToken      string
+		generatorExpectedEMail    string
+		generateAccessToken       string
+		generateAccessTokenError  error
+		generateRefreshToken      string
+		generateRefreshTokenError error
+		IsTokenValidIsValid       bool
+		IsTokenValidClaims        jwt.MapClaims
+		isTokenValidErr           error
+		IsTokenValidToken         string
+		dbReturnError             error
+		dbReturnUser              storage.User
+	}{
+		{
+			name:                   "Happycase",
+			email:                  "test@test.test",
+			givenRefreshToken:      "givenRefreshToken",
+			givenPassword:          "password",
+			generatorExpectedEMail: "test@test.test",
+			generateAccessToken:    "myJWT",
+			generateRefreshToken:   "myRefreshJWT",
+			IsTokenValidIsValid:    true,
+			IsTokenValidClaims:     jwt.MapClaims{"email": "test@test.test"},
+			IsTokenValidToken:      "givenRefreshToken",
+			expectedAccessToken:    "myJWT",
+			expectedRefreshToken:   "myRefreshJWT",
+			dbReturnUser: storage.User{
+				EMail: "test@test.test",
+				Claims: map[string]interface{}{
+					"myCustomClaim": "value",
+				},
+			},
+		},
+		{
+			name:                "User not found",
+			email:               "not@existing.user",
+			givenRefreshToken:   "givenRefreshToken",
+			givenPassword:       "password",
+			IsTokenValidIsValid: true,
+			IsTokenValidClaims:  jwt.MapClaims{"email": "not@existing.user"},
+			IsTokenValidToken:   "givenRefreshToken",
+			expectedError:       ErrUserNotFound,
+			dbReturnError:       storage.ErrUserNotFound,
+		},
+		{
+			name:                "Unexpected db error",
+			email:               "test@test.test",
+			givenRefreshToken:   "givenRefreshToken",
+			givenPassword:       "password",
+			IsTokenValidIsValid: true,
+			IsTokenValidClaims:  jwt.MapClaims{"email": "test@test.test"},
+			expectedError:       errors.New("failed to find user with email \"test@test.test\": unexpected error"),
+			dbReturnError:       errors.New("unexpected error"),
+		},
+		{
+			name:  "Failed to generate accessToken",
+			email: "test@test.test",
+			dbReturnUser: storage.User{
+				EMail: "test@test.test",
+				Claims: map[string]interface{}{
+					"myCustomClaim": "value",
+				},
+			},
+			givenRefreshToken:        "not@existing.user",
+			givenPassword:            "password",
+			IsTokenValidIsValid:      true,
+			IsTokenValidClaims:       jwt.MapClaims{"email": "test@test.test"},
+			generateAccessTokenError: errors.New("error 42"),
+			expectedError:            errors.New("failed to generate access-token: error 42"),
+		},
+		{
+			name:  "Failed to generate refreshToken",
+			email: "test@test.test",
+			dbReturnUser: storage.User{
+				EMail: "test@test.test",
+				Claims: map[string]interface{}{
+					"myCustomClaim": "value",
+				},
+			},
+			givenRefreshToken:         "not@existing.user",
+			givenPassword:             "password",
+			IsTokenValidIsValid:       true,
+			IsTokenValidClaims:        jwt.MapClaims{"email": "test@test.test"},
+			generateRefreshTokenError: errors.New("error 42"),
+			expectedError:             errors.New("failed to generate refresh-token: error 42"),
+		},
+		{
+			name:              "Token not parsable",
+			givenRefreshToken: "test@test.test",
+			givenPassword:     "wrongPassword",
+			isTokenValidErr:   errors.New("failed to parse token"),
+			expectedError:     ErrTokenNotParsable,
+			dbReturnUser: storage.User{
+				EMail: "test@test.test",
+			},
+		},
+		{
+			name:                "Token not valid",
+			givenRefreshToken:   "test@test.test",
+			givenPassword:       "wrongPassword",
+			IsTokenValidIsValid: false,
+			IsTokenValidClaims:  jwt.MapClaims{"email": "test@test.test"},
+			expectedError:       ErrInvalidToken,
+			dbReturnUser: storage.User{
+				EMail: "test@test.test",
+			},
+		},
+		{
+			name:                "Token email claim is not a string",
+			givenRefreshToken:   "test@test.test",
+			givenPassword:       "wrongPassword",
+			IsTokenValidIsValid: true,
+			IsTokenValidClaims:  jwt.MapClaims{"email": 546544461176176},
+			expectedError:       errors.New("email claim is not parsable as string"),
+			dbReturnUser: storage.User{
+				EMail: "test@test.test",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var givenStorageEMail string
+			var givenGenerateRefreshTokenEMail string
+			var givenGenerateAccessTokenEMail string
+			var givenGenerateAccessTokenUserClaims map[string]interface{}
+			var givenIsTokenValidToken string
+			toTest := Provider{
+				Storage: &StorageMock{
+					UserFunc: func(email string) (storage.User, error) {
+						givenStorageEMail = email
+						return tt.dbReturnUser, tt.dbReturnError
+					},
+				},
+				JWTProvider: &JWTProviderMock{
+					GenerateAccessTokenFunc: func(email string, userClaims map[string]interface{}) (string, error) {
+						givenGenerateAccessTokenEMail = email
+						givenGenerateAccessTokenUserClaims = userClaims
+						return tt.generateAccessToken, tt.generateAccessTokenError
+					},
+					GenerateRefreshTokenFunc: func(email string) (string, error) {
+						givenGenerateRefreshTokenEMail = email
+						return tt.generateRefreshToken, tt.generateRefreshTokenError
+					},
+					IsTokenValidFunc: func(token string) (bool, jwt.MapClaims, error) {
+						givenIsTokenValidToken = token
+						return tt.IsTokenValidIsValid, tt.IsTokenValidClaims, tt.isTokenValidErr
+					},
+				},
+			}
+
+			accessToken, refreshToken, err := toTest.Refresh(tt.givenRefreshToken)
+			if fmt.Sprint(err) != fmt.Sprint(tt.expectedError) {
+				t.Fatalf("Processing error is not as expected: \nExpected:\n%s\nGiven:\n%s", tt.expectedError, err)
+			} else if err != nil {
+				return
+			}
+
+			if accessToken != tt.expectedAccessToken {
+				t.Errorf("Given accessToken is not as expected: \nExpected:%s\nGiven:%s", tt.expectedAccessToken, accessToken)
+			}
+
+			if refreshToken != tt.expectedRefreshToken {
+				t.Errorf("Given refreshToken is not as expected: \nExpected:%s\nGiven:%s", tt.expectedRefreshToken, refreshToken)
+			}
+
+			if givenStorageEMail != tt.email {
+				t.Errorf("DB-Requestest User>Email ist not as expected: \nExpected:%s\nGiven:%s", tt.givenRefreshToken, givenStorageEMail)
+			}
+
+			if givenGenerateAccessTokenEMail != tt.generatorExpectedEMail {
+				t.Errorf("Generator.GenerateAccessToken email ist not as expected: \nExpected:%s\nGiven:%s", tt.givenRefreshToken, givenGenerateAccessTokenEMail)
+			}
+
+			if !reflect.DeepEqual(givenGenerateAccessTokenUserClaims, tt.dbReturnUser.Claims) {
+				t.Errorf("Generator.GenerateAccessToken userClaims are not as expected: \nExpected:\n%#v\nGiven:\n%#v", tt.generatorExpectedEMail, givenGenerateAccessTokenEMail)
+			}
+
+			if givenGenerateRefreshTokenEMail != tt.generatorExpectedEMail {
+				t.Errorf("Generator.GenerateRefreshToken email ist not as expected: \nExpected:%s\nGiven:%s", tt.generatorExpectedEMail, givenGenerateRefreshTokenEMail)
+			}
+
+			if givenIsTokenValidToken != tt.IsTokenValidToken {
+				t.Errorf("Generator.IsTokenValid token ist not as expected: \nExpected:%s\nGiven:%s", tt.IsTokenValidToken, givenIsTokenValidToken)
 			}
 		})
 	}

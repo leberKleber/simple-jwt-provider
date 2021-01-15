@@ -57,6 +57,9 @@ func (p Provider) Login(email, password string) (accessToken, refreshToken strin
 }
 
 // Refresh checks user and token validity and return a new access and refresh token if everything is valid
+// return ErrTokenNotParsable when the token is not parsable
+// return ErrInvalidToken when the token is not valid
+// return ErrUserNotFound when the referred user could not be found
 func (p Provider) Refresh(refreshToken string) (newAccessToken, newRefreshToken string, err error) {
 	isValid, claims, err := p.JWTProvider.IsTokenValid(refreshToken)
 	if err != nil {
