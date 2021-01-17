@@ -29,6 +29,7 @@ go build -o simple-jwt-provider ./cmd/provider/
     - [Configuration](#configuration)
 - [API](#api)
     - [POST `/v1/auth/login`](#post-v1authlogin)
+    - [POST `/v1/auth/refresh`](#post-v1authrefresh)
     - [POST `/v1/auth/password-reset-request`](#post-v1authpassword-reset-request)
     - [POST `/v1/auth/password-reset`](#post-v1authpassword-reset)
     - [POST `/v1/admin/users`](#post-v1adminusers)
