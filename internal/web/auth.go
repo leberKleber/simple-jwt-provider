@@ -75,7 +75,10 @@ func (s *Server) refreshHandler(w http.ResponseWriter, r *http.Request) {
 
 	newAccessToken, newRefreshToken, err := s.p.Refresh(requestBody.RefreshToken)
 	if err != nil {
-		if errors.Is(err, internal.ErrInvalidToken) || errors.Is(err, internal.ErrUserNotFound) {
+		if errors.Is(err, internal.ErrInvalidToken) ||
+			errors.Is(err, internal.ErrUserNotFound) ||
+			errors.Is(err, internal.ErrTokenNotParsable) {
+			logrus.Debug("failed to refresh user auth", err)
 			writeError(w, http.StatusUnauthorized, "invalid refresh-token and/or email")
 			return
 		}

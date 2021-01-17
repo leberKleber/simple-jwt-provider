@@ -135,6 +135,18 @@ func TestStorage_CreateUser(t *testing.T) {
 			expectedDBClaims:   []byte(`{"customClaim1":4711}`),
 			expectedError:      ErrUserAlreadyExists,
 		},
+		{
+			name: "failed to marshal claims",
+			givenUser: User{
+				EMail:    "info@leberkleber.io",
+				Password: []byte("bcryptedPassword"),
+				Claims: map[string]interface{}{
+					"customClaim1": 4711,
+					"unmarshable":  make(chan string),
+				},
+			},
+			expectedError: errors.New("failed to marhsal user>claims: json: unsupported type: chan string"),
+		},
 	}
 
 	for _, tt := range tests {

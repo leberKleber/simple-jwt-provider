@@ -21,7 +21,7 @@ type Storage interface {
 //go:generate moq -out jwt_generator_moq_test.go . JWTProvider
 type JWTProvider interface {
 	GenerateAccessToken(email string, userClaims map[string]interface{}) (string, error)
-	GenerateRefreshToken(email string) (string, error)
+	GenerateRefreshToken(email string) (string, string, error)
 	IsTokenValid(token string) (bool, jwt.MapClaims, error)
 }
 

@@ -18,7 +18,7 @@ var x509ParseECPrivateKey = x509.ParseECPrivateKey
 type Provider struct {
 	jwtLifetime   time.Duration
 	privateKey    *ecdsa.PrivateKey
-	signingMethod reflect.Type
+	signingMethod *jwt.SigningMethodECDSA
 	privateClaims struct {
 		audience string
 		issuer   string
@@ -43,7 +43,7 @@ func NewProvider(privateKey string, jwtLifetime time.Duration, jwtAudience, jwtI
 	return &Provider{
 		jwtLifetime:   jwtLifetime,
 		privateKey:    pKey,
-		signingMethod: reflect.TypeOf(&jwt.SigningMethodECDSA{}),
+		signingMethod: jwt.SigningMethodES512,
 		privateClaims: struct {
 			audience string
 			issuer   string
@@ -54,4 +54,16 @@ func NewProvider(privateKey string, jwtLifetime time.Duration, jwtAudience, jwtI
 			subject:  jwtSubject,
 		},
 	}, err
+}
+
+var checkSigningMethodKeyFunc = func(signingMethod jwt.SigningMethod, publicKey *ecdsa.PublicKey) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
+		tokenSigningMethod := reflect.TypeOf(token.Method)
+		expectedSigningMethod := reflect.TypeOf(signingMethod)
+		if tokenSigningMethod != expectedSigningMethod {
+			return nil, fmt.Errorf("unexpected signing method %q, expected: %q", tokenSigningMethod, expectedSigningMethod)
+		}
+
+		return publicKey, nil
+	}
 }

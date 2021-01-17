@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+var httpListenAndServe = http.ListenAndServe
+
 // Provider encapsulates internal.Provider to generate mocks
 //go:generate moq -out provider_moq_test.go . Provider
 type Provider interface {
@@ -61,7 +63,7 @@ func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPasswo
 
 // ListenAndServe wraps http.ListenAndServe
 func (s *Server) ListenAndServe(address string) error {
-	return http.ListenAndServe(address, s.h)
+	return httpListenAndServe(address, s.h)
 }
 
 func contentTypeMiddleware(handler http.Handler) http.Handler {

@@ -81,16 +81,36 @@ func TestGenerator_GenerateAccessToken_FailedToGenerateUUID(t *testing.T) {
 	}
 }
 
+func TestGenerator_GenerateAccessToken_FailedToSignToken(t *testing.T) {
+	p, err := NewProvider(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
+	if err != nil {
+		t.Fatalf("failed to crreate new generator: %s", err)
+	}
+
+	_, err = p.GenerateAccessToken("my.email.de", map[string]interface{}{
+		"unmarshableClaim": make(chan string),
+	})
+
+	expectedError := errors.New("failed to sign access-token: json: unsupported type: chan string")
+	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
+		t.Fatalf("unexpected error. Expected: %q. Gven:: %q", expectedError, err)
+	}
+}
+
 func TestGenerator_GenerateRefreshToken(t *testing.T) {
 	g, err := NewProvider(jwtPrvKey, 4*time.Hour, "audience", "issuer", "subject")
 	if err != nil {
 		t.Fatalf("failed to crreate new generator: %s", err)
 	}
 
-	generatedJWT, err := g.GenerateRefreshToken("myMailAddress")
+	generatedJWT, jwtID, err := g.GenerateRefreshToken("myMailAddress")
 	if err != nil {
 		t.Fatalf("failed to generate jwt: %s", err)
 	}
+	if jwtID == "" {
+		t.Error("generate returns no jwtID")
+	}
+
 	claims := validateJWT(t, generatedJWT)
 	expectedJWTAudience := "audience"
 	if claims["aud"] != expectedJWTAudience {
@@ -105,10 +125,6 @@ func TestGenerator_GenerateRefreshToken(t *testing.T) {
 	expectedJWTSubject := "subject"
 	if claims["sub"] != expectedJWTSubject {
 		t.Errorf("unexpected sub-privateClaim value. Expected: %q. Given: %q", expectedJWTSubject, claims["sub"])
-	}
-
-	if claims["refresh"] != true {
-		t.Errorf("unexpected refresh value. Expected: %t. Given: %q", true, claims["refresh"])
 	}
 
 	if claims["id"] == "" {
@@ -141,8 +157,7 @@ func TestGenerator_GenerateRefreshToken_FailedToGenerateUUID(t *testing.T) {
 		return uuid.UUID{}, errors.New("nope")
 	}
 
-	_, err := Provider{}.GenerateRefreshToken("my.email.de")
-
+	_, _, err := Provider{}.GenerateRefreshToken("my.email.de")
 	expectedError := errors.New("failed to generate jwt-id: nope")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
 		t.Fatalf("unexpected error. Expected: %q. Gven:: %q", expectedError, err)

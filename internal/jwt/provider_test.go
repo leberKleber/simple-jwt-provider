@@ -4,6 +4,8 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"math/big"
 	"testing"
 	"time"
 )
@@ -45,5 +47,55 @@ func TestNewGenerator_InvalidPrivateKey(t *testing.T) {
 	expectedError := errors.New("failed to parse private-key: errrooooooorrrr")
 	if fmt.Sprint(err) != fmt.Sprint(expectedError) {
 		t.Errorf("Unexpected error. Expected: %q, Given: %q", expectedError, err)
+	}
+}
+
+func TestCheckSigningMethodKeyFunc(t *testing.T) {
+	tests := []struct {
+		name               string
+		givenSigningMethod jwt.SigningMethod
+		givenPublicKey     *ecdsa.PublicKey
+		givenToken         *jwt.Token
+		expectedResponse   interface{}
+		expectedErr        error
+	}{
+		{
+			name:               "Happycase",
+			givenSigningMethod: jwt.SigningMethodES512,
+			givenPublicKey:     &ecdsa.PublicKey{X: big.NewInt(555), Y: big.NewInt(666)},
+			givenToken: &jwt.Token{
+				Method: jwt.SigningMethodES512,
+			},
+			expectedResponse: &ecdsa.PublicKey{X: big.NewInt(555), Y: big.NewInt(666)},
+		}, {
+			name:               "Unexpected signing method",
+			givenSigningMethod: jwt.SigningMethodES512,
+			givenPublicKey:     &ecdsa.PublicKey{X: big.NewInt(555), Y: big.NewInt(666)},
+			givenToken: &jwt.Token{
+				Method: jwt.SigningMethodPS256,
+			},
+			expectedErr:      errors.New("unexpected signing method \"*jwt.SigningMethodRSAPSS\", expected: \"*jwt.SigningMethodECDSA\""),
+			expectedResponse: &ecdsa.PublicKey{X: big.NewInt(555), Y: big.NewInt(666)},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			jwtKeyFunc := checkSigningMethodKeyFunc(tt.givenSigningMethod, tt.givenPublicKey)
+
+			resp, err := jwtKeyFunc(tt.givenToken)
+			expectedResponseAsString := fmt.Sprint(tt.expectedResponse)
+			respAsString := fmt.Sprint(resp)
+
+			if fmt.Sprint(err) != fmt.Sprint(tt.expectedErr) {
+				t.Errorf("Unexpected error. \nExpected: %q\nGiven:\n%q", tt.expectedErr, err)
+			} else if err != nil {
+				return
+			}
+
+			if expectedResponseAsString != respAsString {
+				t.Errorf("unexpected response. Given: %q, Expected: %q", respAsString, expectedResponseAsString)
+			}
+		})
 	}
 }

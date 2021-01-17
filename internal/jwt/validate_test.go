@@ -1,14 +1,16 @@
 package jwt
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"reflect"
 	"testing"
+	"time"
 )
 
-func TestProvider_IsTokenValid(t *testing.T) {
+func TestProvider_Error_IsTokenValid(t *testing.T) {
 	tests := []struct {
 		name            string
 		givenToken      string
@@ -62,7 +64,7 @@ func TestProvider_IsTokenValid(t *testing.T) {
 				return tt.parseFuncToken, tt.parseFuncErr
 			}
 
-			isValid, claims, err := Provider{}.IsTokenValid(tt.givenToken)
+			isValid, claims, err := Provider{privateKey: &ecdsa.PrivateKey{}}.IsTokenValid(tt.givenToken)
 			if fmt.Sprint(err) != fmt.Sprint(tt.expectedErr) {
 				t.Fatalf("Unexpected error. Expected: %q. Given: %q", tt.expectedErr, err)
 			} else if err != nil {
@@ -77,5 +79,40 @@ func TestProvider_IsTokenValid(t *testing.T) {
 				t.Errorf("Unexpected response claims. Expected: %#v. Given: %#v", tt.expectedClaims, claims)
 			}
 		})
+	}
+}
+
+func TestProvider_IsTokenValid(t *testing.T) {
+	email := "my.mail@test.de"
+
+	provider, err := NewProvider(jwtPrvKey, time.Minute, "audience", "issuer", "subject")
+	if err != nil {
+		t.Fatal("failed to create provider", err)
+	}
+
+	token, jwtID, err := provider.GenerateRefreshToken(email)
+	if err != nil {
+		t.Fatal("failed to generate test refresh-token", err)
+	}
+	if jwtID == "" {
+		t.Error("generate returns no jwtID")
+	}
+
+	isValid, claims, err := provider.IsTokenValid(token)
+	if err != nil {
+		t.Fatal("failed to validate token", err)
+	}
+
+	if !isValid {
+		t.Error("token is not valid")
+	}
+
+	claimEmail, ok := claims["email"].(string)
+	if !ok {
+		t.Fatalf("email is not parsable as string. Claims: %#v", claims)
+	}
+
+	if email != claimEmail {
+		t.Errorf("claims>email is not as expected. Expected: %q, Given: %q", email, claimEmail)
 	}
 }
