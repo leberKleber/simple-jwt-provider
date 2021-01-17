@@ -3,6 +3,8 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"gotest.tools/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -143,3 +145,40 @@ func TestMethodNotAllowedHandler(t *testing.T) {
 		t.Errorf("Request response body is not as expected. Expected: %q, Given: %q", expectedResponseBody, string(compactedRespBodyAsBytes))
 	}
 }
+
+func TestServer_ListenAndServe(t *testing.T) {
+	oldHttpListenAndServe := httpListenAndServe
+	defer func() {
+		httpListenAndServe = oldHttpListenAndServe
+	}()
+
+	addr := "myAddr"
+	err := errors.New("myErr")
+	handler := httpHandlerMock{ID: "myHTTPHandlerMock"}
+
+	var givenAddr string
+	var givenHandler http.Handler
+
+	httpListenAndServe = func(addr string, handler http.Handler) error {
+		givenAddr = addr
+		givenHandler = handler
+		return err
+	}
+
+	s := Server{
+		h: httpHandlerMock{ID: "myHTTPHandlerMock"},
+	}
+
+	returnErr := s.ListenAndServe(addr)
+
+	assert.Equal(t, givenAddr, addr, "Unexpected return addr")
+	assert.Equal(t, returnErr, err, "Unexpected return error")
+	assert.Equal(t, givenHandler, handler, "ListenAndServe called with unexpected handler")
+
+}
+
+type httpHandlerMock struct {
+	ID string
+}
+
+func (t httpHandlerMock) ServeHTTP(http.ResponseWriter, *http.Request) {}

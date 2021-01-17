@@ -9,8 +9,11 @@ import (
 // ErrTokenNotFound returned when no token could be found
 var ErrTokenNotFound = errors.New("no token found")
 
-// TokenTypeReset identifies a token as reset-token. Then it can only be user for password-reset
+// TokenTypeReset identifies a token as reset-token. Then it can only be used for password-reset
 const TokenTypeReset string = "reset"
+
+// TokenTypeRefresh identifies a token as refresh-token. Then it can only be used  for refresh
+const TokenTypeRefresh string = "refresh"
 
 // Token represent a persisted token
 type Token struct {

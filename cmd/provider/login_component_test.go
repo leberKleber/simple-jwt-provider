@@ -16,11 +16,11 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	email := "info@leberkleber.io"
+	email := "login_test@leberkleber.io"
 	password := "s3cr3t"
 
 	createUser(t, email, password)
-	token, authorized := loginUser(t, email, password)
+	token, _, authorized := loginUser(t, email, password)
 	if !authorized {
 		t.Fatal("could not login user")
 	}
@@ -114,7 +114,7 @@ func decodeECDSApubKey(pemEncodedPub string) (*ecdsa.PublicKey, error) {
 	return publicKey, nil
 }
 
-func loginUser(t *testing.T, email, password string) (string, bool) {
+func loginUser(t *testing.T, email, password string) (string, string, bool) {
 	t.Helper()
 	resp, err := http.Post(
 		"http://simple-jwt-provider/v1/auth/login",
@@ -127,6 +127,7 @@ func loginUser(t *testing.T, email, password string) (string, bool) {
 
 	responseBody := struct {
 		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
 		ErrorMessage string `json:"message"`
 	}{}
 
@@ -137,11 +138,11 @@ func loginUser(t *testing.T, email, password string) (string, bool) {
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return "", false
+		return "", "", false
 	}
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Invalid response status code. Expected: %d, Given: %d, Body: %s", http.StatusOK, resp.StatusCode, responseBody.ErrorMessage)
 	}
 
-	return responseBody.AccessToken, true
+	return responseBody.AccessToken, responseBody.RefreshToken, true
 }

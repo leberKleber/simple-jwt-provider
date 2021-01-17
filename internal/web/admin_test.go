@@ -188,6 +188,21 @@ func TestGetUserHandler(t *testing.T) {
 			expectedResponseCode: http.StatusInternalServerError,
 			expectedResponseBody: `{"message":"internal server error"}`,
 		},
+		{
+			name:         "Unable to encode User",
+			requestEmail: "info%40leberkleber.io",
+			providerUser: internal.User{
+				EMail:    "test.test@test.test",
+				Password: "myPassword",
+				Claims: map[string]interface{}{
+					"test":        "claim",
+					"unmarshable": make(chan string),
+				},
+			},
+			expectedEncodedEmail: "info@leberkleber.io",
+			expectedResponseCode: http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"internal server error"}`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -319,6 +334,29 @@ func TestUpdateUserHandler(t *testing.T) {
 			providerError: errors.New("nope"),
 			expectedUser: User{
 				EMail:    "test.test@test.test",
+				Password: "s3cr3t",
+				Claims: map[string]interface{}{
+					"hello": "world",
+					"c":     42,
+				},
+			},
+			expectedResponseCode: http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"internal server error"}`,
+		},
+		{
+			name:         "Failed to encode User",
+			requestBody:  `{"password": "s3cr3t", "claims": {"hello": "world", "c": 42}}`,
+			requestEmail: `test.test@test.test`,
+			providerUser: internal.User{
+				EMail:    "test.test@test.test",
+				Password: "**********",
+				Claims: map[string]interface{}{
+					"hello":       "world",
+					"c":           42,
+					"unmarshable": make(chan string),
+				},
+			},
+			expectedUser: User{
 				Password: "s3cr3t",
 				Claims: map[string]interface{}{
 					"hello": "world",

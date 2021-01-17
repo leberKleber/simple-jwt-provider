@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 )
 
@@ -16,10 +17,12 @@ type Storage interface {
 	DeleteToken(id int64) error
 }
 
-// JWTGenerator encapsulates jwt.Generator to generate mocks
-//go:generate moq -out jwt_generator_moq_test.go . JWTGenerator
-type JWTGenerator interface {
-	Generate(email string, userClaims map[string]interface{}) (string, error)
+// JWTProvider encapsulates jwt.Provider to generate mocks
+//go:generate moq -out jwt_generator_moq_test.go . JWTProvider
+type JWTProvider interface {
+	GenerateAccessToken(email string, userClaims map[string]interface{}) (string, error)
+	GenerateRefreshToken(email string) (string, string, error)
+	IsTokenValid(token string) (bool, jwt.MapClaims, error)
 }
 
 // Mailer encapsulates mailer.Mailer to generate mocks
@@ -30,7 +33,7 @@ type Mailer interface {
 
 // Provider provides all necessary interfaces for use in internal
 type Provider struct {
-	Storage      Storage
-	JWTGenerator JWTGenerator
-	Mailer       Mailer
+	Storage     Storage
+	JWTProvider JWTProvider
+	Mailer      Mailer
 }

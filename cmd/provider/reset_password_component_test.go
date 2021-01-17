@@ -13,7 +13,7 @@ import (
 )
 
 func TestResetPassword(t *testing.T) {
-	email := "passwordResetTest@leberkleber.io"
+	email := "reset_test@leberkleber.io"
 	password := "s3cr3t"
 	newPassword := "t3rc3s"
 
