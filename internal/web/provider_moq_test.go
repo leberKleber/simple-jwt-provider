@@ -14,6 +14,7 @@ var (
 	lockProviderMockDeleteUser                 sync.RWMutex
 	lockProviderMockGetUser                    sync.RWMutex
 	lockProviderMockLogin                      sync.RWMutex
+	lockProviderMockRefresh                    sync.RWMutex
 	lockProviderMockResetPassword              sync.RWMutex
 	lockProviderMockUpdateUser                 sync.RWMutex
 )
@@ -40,8 +41,11 @@ var _ Provider = &ProviderMock{}
 //             GetUserFunc: func(email string) (internal.User, error) {
 // 	               panic("mock out the GetUser method")
 //             },
-//             LoginFunc: func(email string, password string) (string, error) {
+//             LoginFunc: func(email string, password string) (string, string, error) {
 // 	               panic("mock out the Login method")
+//             },
+//             RefreshFunc: func(refreshToken string) (string, string, error) {
+// 	               panic("mock out the Refresh method")
 //             },
 //             ResetPasswordFunc: func(email string, resetToken string, password string) error {
 // 	               panic("mock out the ResetPassword method")
@@ -69,7 +73,10 @@ type ProviderMock struct {
 	GetUserFunc func(email string) (internal.User, error)
 
 	// LoginFunc mocks the Login method.
-	LoginFunc func(email string, password string) (string, error)
+	LoginFunc func(email string, password string) (string, string, error)
+
+	// RefreshFunc mocks the Refresh method.
+	RefreshFunc func(refreshToken string) (string, string, error)
 
 	// ResetPasswordFunc mocks the ResetPassword method.
 	ResetPasswordFunc func(email string, resetToken string, password string) error
@@ -105,6 +112,11 @@ type ProviderMock struct {
 			Email string
 			// Password is the password argument value.
 			Password string
+		}
+		// Refresh holds details about calls to the Refresh method.
+		Refresh []struct {
+			// RefreshToken is the refreshToken argument value.
+			RefreshToken string
 		}
 		// ResetPassword holds details about calls to the ResetPassword method.
 		ResetPassword []struct {
@@ -250,7 +262,7 @@ func (mock *ProviderMock) GetUserCalls() []struct {
 }
 
 // Login calls LoginFunc.
-func (mock *ProviderMock) Login(email string, password string) (string, error) {
+func (mock *ProviderMock) Login(email string, password string) (string, string, error) {
 	if mock.LoginFunc == nil {
 		panic("ProviderMock.LoginFunc: method is nil but Provider.Login was just called")
 	}
@@ -281,6 +293,37 @@ func (mock *ProviderMock) LoginCalls() []struct {
 	lockProviderMockLogin.RLock()
 	calls = mock.calls.Login
 	lockProviderMockLogin.RUnlock()
+	return calls
+}
+
+// Refresh calls RefreshFunc.
+func (mock *ProviderMock) Refresh(refreshToken string) (string, string, error) {
+	if mock.RefreshFunc == nil {
+		panic("ProviderMock.RefreshFunc: method is nil but Provider.Refresh was just called")
+	}
+	callInfo := struct {
+		RefreshToken string
+	}{
+		RefreshToken: refreshToken,
+	}
+	lockProviderMockRefresh.Lock()
+	mock.calls.Refresh = append(mock.calls.Refresh, callInfo)
+	lockProviderMockRefresh.Unlock()
+	return mock.RefreshFunc(refreshToken)
+}
+
+// RefreshCalls gets all the calls that were made to Refresh.
+// Check the length with:
+//     len(mockedProvider.RefreshCalls())
+func (mock *ProviderMock) RefreshCalls() []struct {
+	RefreshToken string
+} {
+	var calls []struct {
+		RefreshToken string
+	}
+	lockProviderMockRefresh.RLock()
+	calls = mock.calls.Refresh
+	lockProviderMockRefresh.RUnlock()
 	return calls
 }
 

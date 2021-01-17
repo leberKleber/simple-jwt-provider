@@ -9,10 +9,13 @@ import (
 	"net/http"
 )
 
+var httpListenAndServe = http.ListenAndServe
+
 // Provider encapsulates internal.Provider to generate mocks
 //go:generate moq -out provider_moq_test.go . Provider
 type Provider interface {
-	Login(email, password string) (string, error)
+	Login(email, password string) (string, string, error)
+	Refresh(refreshToken string) (string, string, error)
 	CreatePasswordResetRequest(email string) error
 	ResetPassword(email, resetToken, password string) error
 	CreateUser(user internal.User) error
@@ -39,6 +42,7 @@ func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPasswo
 	v1 := r.PathPrefix("/v1").Subrouter()
 	v1.Path("/internal/alive").Methods(http.MethodGet).HandlerFunc(s.aliveHandler)
 	v1.Path("/auth/login").Methods(http.MethodPost).HandlerFunc(s.loginHandler)
+	v1.Path("/auth/refresh").Methods(http.MethodPost).HandlerFunc(s.refreshHandler)
 	v1.Path("/auth/password-reset-request").Methods(http.MethodPost).HandlerFunc(s.passwordResetRequestHandler)
 	v1.Path("/auth/password-reset").Methods(http.MethodPost).HandlerFunc(s.passwordResetHandler)
 
@@ -59,7 +63,7 @@ func NewServer(p Provider, enableAdminAPI bool, adminAPIUsername, adminAPIPasswo
 
 // ListenAndServe wraps http.ListenAndServe
 func (s *Server) ListenAndServe(address string) error {
-	return http.ListenAndServe(address, s.h)
+	return httpListenAndServe(address, s.h)
 }
 
 func contentTypeMiddleware(handler http.Handler) http.Handler {

@@ -20,6 +20,8 @@ type template interface {
 	Render(args interface{}) (*mail.Message, error)
 }
 
+var mailNewDialer = mail.NewDialer
+
 // Mailer should be created via New and can send different mails to different recipients based on loaded mail templates
 type Mailer struct {
 	dialer    dialer
@@ -27,7 +29,7 @@ type Mailer struct {
 }
 
 var buildDialer = func(username string, password string, host string, port int, tlsInsecureSkipVerify bool, tlsServerName string) dialer {
-	d := mail.NewDialer(host, port, username, password)
+	d := mailNewDialer(host, port, username, password)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: tlsInsecureSkipVerify, ServerName: tlsServerName}
 
 	return d

@@ -4,52 +4,77 @@
 package internal
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"sync"
 )
 
 var (
-	lockJWTGeneratorMockGenerate sync.RWMutex
+	lockJWTProviderMockGenerateAccessToken  sync.RWMutex
+	lockJWTProviderMockGenerateRefreshToken sync.RWMutex
+	lockJWTProviderMockIsTokenValid         sync.RWMutex
 )
 
-// Ensure, that JWTGeneratorMock does implement JWTGenerator.
+// Ensure, that JWTProviderMock does implement JWTProvider.
 // If this is not the case, regenerate this file with moq.
-var _ JWTGenerator = &JWTGeneratorMock{}
+var _ JWTProvider = &JWTProviderMock{}
 
-// JWTGeneratorMock is a mock implementation of JWTGenerator.
+// JWTProviderMock is a mock implementation of JWTProvider.
 //
-//     func TestSomethingThatUsesJWTGenerator(t *testing.T) {
+//     func TestSomethingThatUsesJWTProvider(t *testing.T) {
 //
-//         // make and configure a mocked JWTGenerator
-//         mockedJWTGenerator := &JWTGeneratorMock{
-//             GenerateFunc: func(email string, userClaims map[string]interface{}) (string, error) {
-// 	               panic("mock out the Generate method")
+//         // make and configure a mocked JWTProvider
+//         mockedJWTProvider := &JWTProviderMock{
+//             GenerateAccessTokenFunc: func(email string, userClaims map[string]interface{}) (string, error) {
+// 	               panic("mock out the GenerateAccessToken method")
+//             },
+//             GenerateRefreshTokenFunc: func(email string) (string, string, error) {
+// 	               panic("mock out the GenerateRefreshToken method")
+//             },
+//             IsTokenValidFunc: func(token string) (bool, jwt.MapClaims, error) {
+// 	               panic("mock out the IsTokenValid method")
 //             },
 //         }
 //
-//         // use mockedJWTGenerator in code that requires JWTGenerator
+//         // use mockedJWTProvider in code that requires JWTProvider
 //         // and then make assertions.
 //
 //     }
-type JWTGeneratorMock struct {
-	// GenerateFunc mocks the Generate method.
-	GenerateFunc func(email string, userClaims map[string]interface{}) (string, error)
+type JWTProviderMock struct {
+	// GenerateAccessTokenFunc mocks the GenerateAccessToken method.
+	GenerateAccessTokenFunc func(email string, userClaims map[string]interface{}) (string, error)
+
+	// GenerateRefreshTokenFunc mocks the GenerateRefreshToken method.
+	GenerateRefreshTokenFunc func(email string) (string, string, error)
+
+	// IsTokenValidFunc mocks the IsTokenValid method.
+	IsTokenValidFunc func(token string) (bool, jwt.MapClaims, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// Generate holds details about calls to the Generate method.
-		Generate []struct {
+		// GenerateAccessToken holds details about calls to the GenerateAccessToken method.
+		GenerateAccessToken []struct {
 			// Email is the email argument value.
 			Email string
 			// UserClaims is the userClaims argument value.
 			UserClaims map[string]interface{}
 		}
+		// GenerateRefreshToken holds details about calls to the GenerateRefreshToken method.
+		GenerateRefreshToken []struct {
+			// Email is the email argument value.
+			Email string
+		}
+		// IsTokenValid holds details about calls to the IsTokenValid method.
+		IsTokenValid []struct {
+			// Token is the token argument value.
+			Token string
+		}
 	}
 }
 
-// Generate calls GenerateFunc.
-func (mock *JWTGeneratorMock) Generate(email string, userClaims map[string]interface{}) (string, error) {
-	if mock.GenerateFunc == nil {
-		panic("JWTGeneratorMock.GenerateFunc: method is nil but JWTGenerator.Generate was just called")
+// GenerateAccessToken calls GenerateAccessTokenFunc.
+func (mock *JWTProviderMock) GenerateAccessToken(email string, userClaims map[string]interface{}) (string, error) {
+	if mock.GenerateAccessTokenFunc == nil {
+		panic("JWTProviderMock.GenerateAccessTokenFunc: method is nil but JWTProvider.GenerateAccessToken was just called")
 	}
 	callInfo := struct {
 		Email      string
@@ -58,16 +83,16 @@ func (mock *JWTGeneratorMock) Generate(email string, userClaims map[string]inter
 		Email:      email,
 		UserClaims: userClaims,
 	}
-	lockJWTGeneratorMockGenerate.Lock()
-	mock.calls.Generate = append(mock.calls.Generate, callInfo)
-	lockJWTGeneratorMockGenerate.Unlock()
-	return mock.GenerateFunc(email, userClaims)
+	lockJWTProviderMockGenerateAccessToken.Lock()
+	mock.calls.GenerateAccessToken = append(mock.calls.GenerateAccessToken, callInfo)
+	lockJWTProviderMockGenerateAccessToken.Unlock()
+	return mock.GenerateAccessTokenFunc(email, userClaims)
 }
 
-// GenerateCalls gets all the calls that were made to Generate.
+// GenerateAccessTokenCalls gets all the calls that were made to GenerateAccessToken.
 // Check the length with:
-//     len(mockedJWTGenerator.GenerateCalls())
-func (mock *JWTGeneratorMock) GenerateCalls() []struct {
+//     len(mockedJWTProvider.GenerateAccessTokenCalls())
+func (mock *JWTProviderMock) GenerateAccessTokenCalls() []struct {
 	Email      string
 	UserClaims map[string]interface{}
 } {
@@ -75,8 +100,70 @@ func (mock *JWTGeneratorMock) GenerateCalls() []struct {
 		Email      string
 		UserClaims map[string]interface{}
 	}
-	lockJWTGeneratorMockGenerate.RLock()
-	calls = mock.calls.Generate
-	lockJWTGeneratorMockGenerate.RUnlock()
+	lockJWTProviderMockGenerateAccessToken.RLock()
+	calls = mock.calls.GenerateAccessToken
+	lockJWTProviderMockGenerateAccessToken.RUnlock()
+	return calls
+}
+
+// GenerateRefreshToken calls GenerateRefreshTokenFunc.
+func (mock *JWTProviderMock) GenerateRefreshToken(email string) (string, string, error) {
+	if mock.GenerateRefreshTokenFunc == nil {
+		panic("JWTProviderMock.GenerateRefreshTokenFunc: method is nil but JWTProvider.GenerateRefreshToken was just called")
+	}
+	callInfo := struct {
+		Email string
+	}{
+		Email: email,
+	}
+	lockJWTProviderMockGenerateRefreshToken.Lock()
+	mock.calls.GenerateRefreshToken = append(mock.calls.GenerateRefreshToken, callInfo)
+	lockJWTProviderMockGenerateRefreshToken.Unlock()
+	return mock.GenerateRefreshTokenFunc(email)
+}
+
+// GenerateRefreshTokenCalls gets all the calls that were made to GenerateRefreshToken.
+// Check the length with:
+//     len(mockedJWTProvider.GenerateRefreshTokenCalls())
+func (mock *JWTProviderMock) GenerateRefreshTokenCalls() []struct {
+	Email string
+} {
+	var calls []struct {
+		Email string
+	}
+	lockJWTProviderMockGenerateRefreshToken.RLock()
+	calls = mock.calls.GenerateRefreshToken
+	lockJWTProviderMockGenerateRefreshToken.RUnlock()
+	return calls
+}
+
+// IsTokenValid calls IsTokenValidFunc.
+func (mock *JWTProviderMock) IsTokenValid(token string) (bool, jwt.MapClaims, error) {
+	if mock.IsTokenValidFunc == nil {
+		panic("JWTProviderMock.IsTokenValidFunc: method is nil but JWTProvider.IsTokenValid was just called")
+	}
+	callInfo := struct {
+		Token string
+	}{
+		Token: token,
+	}
+	lockJWTProviderMockIsTokenValid.Lock()
+	mock.calls.IsTokenValid = append(mock.calls.IsTokenValid, callInfo)
+	lockJWTProviderMockIsTokenValid.Unlock()
+	return mock.IsTokenValidFunc(token)
+}
+
+// IsTokenValidCalls gets all the calls that were made to IsTokenValid.
+// Check the length with:
+//     len(mockedJWTProvider.IsTokenValidCalls())
+func (mock *JWTProviderMock) IsTokenValidCalls() []struct {
+	Token string
+} {
+	var calls []struct {
+		Token string
+	}
+	lockJWTProviderMockIsTokenValid.RLock()
+	calls = mock.calls.IsTokenValid
+	lockJWTProviderMockIsTokenValid.RUnlock()
 	return calls
 }

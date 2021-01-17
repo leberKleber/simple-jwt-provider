@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/mail.v2"
+	"gotest.tools/assert"
 	"reflect"
 	"testing"
 )
@@ -323,4 +324,40 @@ func TestMailer_SendPasswordResetRequestEMail_FailedToSendMail(t *testing.T) {
 	if len(dialerDialCalls) != 0 {
 		t.Errorf("dialer.DialAndSendCalls should be called 0 time but was %d", len(dialerDialCalls))
 	}
+}
+
+func TestBuildDialer(t *testing.T) {
+	oldMailNewDialer := mailNewDialer
+	defer func() {
+		mailNewDialer = oldMailNewDialer
+	}()
+
+	//given
+	host := "myHost"
+	port := 1234
+	username := "myUsername"
+	password := "myPassword"
+	tlsServerName := "myServerName"
+
+	mailNewDialer = func(host string, port int, username, password string) *mail.Dialer {
+		return &mail.Dialer{
+			Host:     host,
+			Port:     port,
+			Username: username,
+			Password: password,
+		}
+	}
+
+	//when
+	buildDialer := buildDialer(username, password, host, port, false, tlsServerName)
+
+	mailDialer := buildDialer.(*mail.Dialer)
+
+	//then
+	assert.Equal(t, mailDialer.Host, host, "dialer>Host is not as expected")
+	assert.Equal(t, mailDialer.Port, port, "dialer>Port is not as expected")
+	assert.Equal(t, mailDialer.Username, username, "dialer>Username is not as expected")
+	assert.Equal(t, mailDialer.Password, password, "dialer>Password is not as expected")
+	assert.Equal(t, mailDialer.TLSConfig.InsecureSkipVerify, false, "dialer>TLSConfig.InsecureSkipVerify should be false")
+	assert.Equal(t, mailDialer.TLSConfig.ServerName, tlsServerName, "buildDialer.TLSConfig.ServerName is not as expected")
 }

@@ -4,13 +4,15 @@
 [![codecov](https://codecov.io/gh/leberKleber/simple-jwt-provider/branch/master/graph/badge.svg)](https://codecov.io/gh/leberKleber/simple-jwt-provider)
 
 # simple-jwt-provider
-Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres
-persisted user, which can be managed via api. Also, a password-reset flow via mail verification is available.
-User specific custom-claims also available for jwt-generation and mail rendering.
+
+Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres persisted user, which
+can be managed via api. Also, a password-reset flow via mail verification is available. User specific custom-claims also
+available for jwt-generation and mail rendering.
 
 dockerized: https://hub.docker.com/r/leberkleber/simple-jwt-provider
 
 build it yourself:
+
 ```shell script
 # as docker-image
 docker build . -t leberkleber/simple-jwt-provider
@@ -20,24 +22,26 @@ go build -o simple-jwt-provider ./cmd/provider/
 ```
 
 # Table of contents
+
 - [Try it](#try-it)
 - [Getting started](#getting-started)
-  - [Generate ECDSA-512 key pair](#generate-ecdsa-512-key-pair)
-  - [Configuration](#configuration)
+    - [Generate ECDSA-512 key pair](#generate-ecdsa-512-key-pair)
+    - [Configuration](#configuration)
 - [API](#api)
-  - [POST `/v1/auth/login`](#post-v1authlogin)
-  - [POST `/v1/auth/password-reset-request`](#post-v1authpassword-reset-request)
-  - [POST `/v1/auth/password-reset`](#post-v1authpassword-reset)
-  - [POST `/v1/admin/users`](#post-v1adminusers)
-  - [PUT `/v1/admin/users/{email}`](#put-v1adminusersemail)
-  - [DELETE `/v1/admin/users/{email}`](#delete-v1adminusersemail)
+    - [POST `/v1/auth/login`](#post-v1authlogin)
+    - [POST `/v1/auth/password-reset-request`](#post-v1authpassword-reset-request)
+    - [POST `/v1/auth/password-reset`](#post-v1authpassword-reset)
+    - [POST `/v1/admin/users`](#post-v1adminusers)
+    - [PUT `/v1/admin/users/{email}`](#put-v1adminusersemail)
+    - [DELETE `/v1/admin/users/{email}`](#delete-v1adminusersemail)
 - [Mail](#mail)
-  - [Password reset request](#password-reset-request)
+    - [Password reset request](#password-reset-request)
 - [Development](#development)
-  - [mocks](#mocks)
-  - [component tests](#component-tests)
-   
+    - [mocks](#mocks)
+    - [component tests](#component-tests)
+
 ## Try it
+
 ```shell script
 git clone git@github.com:leberKleber/simple-jwt-provider.git
 docker-compose -f example/docker-compose.yml up
@@ -67,6 +71,7 @@ docker-compose -f example/docker-compose.yml up
 ```
 
 ## Getting started
+
 ### Generate ECDSA-512 key pair
 
 ```sh
@@ -77,6 +82,7 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 ```
 
 ### Configuration
+
 | Environment variable              | Description                                                                           | Required                            | Default               |
 | --------------------------------- |:-------------------------------------------------------------------------------------:| -----------------------------------:|----------------------:|
 | SJP_SERVER_ADDRESS                | Server-address network-interface to bind on e.g.: '127.0.0.1:8080'                    | no                                  | 0.0.0.0:80            |
@@ -103,125 +109,161 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 | SJP_MAIL_TLS_SERVER_NAME          | name of the server who expose the certificate                                         | no                                  | -                     |
 
 ## API
+
 ### POST `/v1/auth/login`
+
 This endpoint will check the email/password combination and will set the respond with an jwtauthToken if correct:
 
 Request body:
 ```json
 {
-    "email": "info@leberkleber.io",
-    "password": "s3cr3t"
+  "email": "info@leberkleber.io",
+  "password": "s3cr3t"
 }
 ```
 
 Response body (200 - OK):
 ```json
 {
-    "access_token":"<jwt>"
+  "access_token": "<access-jwt>",
+  "refresh_token": "<refresh-jwt>"
 }
 ```
 
-### POST `/v1/auth/password-reset-request`
-This endpoint will trigger a password reset request. The user gets a token per mail.
-With this token, the password can be reset via POST@`/v1/auth/password-reset` .
+### POST `/v1/auth/refresh`
+
+This endpoint will return a new access and refresh token. The submitted refresh-token will no longer be valid.
 
 Request body:
 ```json
 {
-    "email": "info@leberkleber.io"
+  "refresh_token": "<refresh_jwt>"
+}
+```
+
+Response body (200 - OK):
+```json
+{
+  "access_token": "<new-access-jwt>",
+  "refresh_token": "<new-refresh-jwt>"
+}
+```
+### POST `/v1/auth/password-reset-request`
+
+This endpoint will trigger a password reset request. The user gets a token per mail. With this token, the password can
+be reset via POST@`/v1/auth/password-reset` .
+
+Request body:
+```json
+{
+  "email": "info@leberkleber.io"
 }
 ```
 
 Response (201 - CREATED)
 
 ### POST `/v1/auth/password-reset`
+
 This endpoint will reset the password of the given user if the reset-token is valid and matches to the given email.
 
 Request body:
 ```json
 {
-    "email": "info@leberkleber.io",
-    "reset_token": "rAnDoMsHiT456",
-    "password": "SeCReT"
+  "email": "info@leberkleber.io",
+  "reset_token": "rAnDoMsHiT456",
+  "password": "SeCReT"
 }
 ```
 
-Response (200 - OK)
+Response (204 - NO CONTENT)
 
 ### POST `/v1/admin/users`
+
 This endpoint will create a new user if admin api auth was successfully:
 
 Request body:
 ```json
 {
-    "email": "info@leberkleber.io",
-    "password": "s3cr3t",
-    "claims":  {
-        "myCustomClaim": "custom claims for jwt and mail templates"
-    }
+  "email": "info@leberkleber.io",
+  "password": "s3cr3t",
+  "claims": {
+    "myCustomClaim": "custom claims for jwt and mail templates"
+  }
 }
 ```
 
 Response body (201 - CREATED)
 
 ### PUT `/v1/admin/users/{email}`
-This endpoint will update the given properties (excluding email) of the user with the given email when the admin api auth was successfully:
+
+This endpoint will update the given properties (excluding email) of the user with the given email when the admin api
+auth was successfully:
 
 Request body:
 ```json
 {
-    "password": "n3wS3cr3t",
-    "claims":  {
-        "updatedClaim": "now updated"
-    }
+  "password": "n3wS3cr3t",
+  "claims": {
+    "updatedClaim": "now updated"
+  }
 }
 ```
 
 Response body (200 - NO CONTENT)
+
 ```json
 {
-    "email": "info@leberkleber.io",
-    "password": "**********",
-    "claims":  {
-        "updatedClaim": "now updated"
-    }
+  "email": "info@leberkleber.io",
+  "password": "**********",
+  "claims": {
+    "updatedClaim": "now updated"
+  }
 }
 ```
 
 ### DELETE `/v1/admin/users/{email}`
+
 This endpoint will delete the user with the given email when there are no tokens which referred to this user, and the
 admin api auth was successfully:
 
 Response body (201 - NO CONTENT)
 
 ## Mail
+
 Mails will be generated based on a set of templates which should be prepared for productive usage.
-- `<mailType>.html` represents the html body of the mail and can be templated with `html.template` syntax 
-(https://golang.org/pkg/html/template/). Available templating arguments listed in detailed template type description.
-- `<mailType>.txt` represents the text body of the mail and can be templated with `text.template` syntax 
-(https://golang.org/pkg/text/template/). Available templating arguments listed in detailed template type description.
+
+- `<mailType>.html` represents the html body of the mail and can be templated with `html.template` syntax
+  (https://golang.org/pkg/html/template/). Available templating arguments listed in detailed template type description.
+- `<mailType>.txt` represents the text body of the mail and can be templated with `text.template` syntax
+  (https://golang.org/pkg/text/template/). Available templating arguments listed in detailed template type description.
 - `<mailType>.yml` represents the header of the mail. In this template headers e.g. `From`, `To` or `Subject`
-can be set `text.template` syntax (https://golang.org/pkg/text/template/). Available templating arguments listed
-in detailed template type description.
+  can be set `text.template` syntax (https://golang.org/pkg/text/template/). Available templating arguments listed in
+  detailed template type description.
 
 ### Password reset request
-An example of this mail type can be found in `/mail-templates/password-reset-request.*`.
-Available template arguments:
-| Argument           | Content                                                | Example usage                       |
-|--------------------|--------------------------------------------------------|-------------------------------------|
-| Recipient          | Users email address                                    | `{{.Recipient}}`                    |
-| PasswordResetToken | The token which is required to reset the password      | `{{.PasswordResetToken}}`           |
-| Claims             | All custom-claims which stored in relation to the user | `{{if index .Claims "first_name"}}` |
+
+An example of this mail type can be found in `/mail-templates/password-reset-request.*`. Available template arguments:
+| Argument | Content | Example usage |
+|--------------------|--------------------------------------------------------|-------------------------------------| |
+Recipient | Users email address | `{{.Recipient}}`                    | | PasswordResetToken | The token which is
+required to reset the password | `{{.PasswordResetToken}}`           | | Claims | All custom-claims which stored in
+relation to the user | `{{if index .Claims "first_name"}}` |
 
 ## Development
+
 ### mocks
+
 Mocks will be generated with github.com/matryer/moq. Execute the following for generation:
+
 ```shell script
 go get github.com/matryer/moq
 go generate ./...
 ```
+
 ### component tests
-Component tests can be executed locally with: 
+
+Component tests can be executed locally with:
+
 ```shell script
 # build simple-jwt-provider from source code
 # setup infrastructure
