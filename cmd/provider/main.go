@@ -17,10 +17,18 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
 	cfg, err := newConfig()
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to parse config")
 	}
+
+	logLvl, err := logrus.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to parse log-level")
+	}
+	logrus.SetLevel(logLvl)
 
 	cfgAsString, err := conf.String(&cfg)
 	if err != nil {
