@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 if [ "$#" -ne "1" ]; then
-  echo "Two arguments must be set e.g. ./refresh.sh refreshToken"
+  echo "One argument must be set e.g. ./refresh.sh refreshToken"
   exit 1
 fi
 

@@ -11,6 +11,7 @@ import (
 var confUsage = conf.Usage
 
 type config struct {
+	LogLevel      string `conf:"env:LOG_LEVEL,help:Log-Level can be TRACE DEBUG INFO WARN ERROR FATAL or PANIC,default:INFO"`
 	ServerAddress string `conf:"help:Server-address network-interface to bind on e.g.: '127.0.0.1:8080',default:0.0.0.0:80"`
 	JWT           struct {
 		Lifetime   time.Duration `conf:"env:JWT_LIFETIME,help:Lifetime of JWT,default:4h"`

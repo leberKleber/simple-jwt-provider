@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 if [ "$#" -ne "1" ]; then
-  echo "One argument must be set e.g. ./delete_user.sh email"
+  echo "One argument must be set e.g. ./delete-user.sh email"
   exit 1
 fi
 

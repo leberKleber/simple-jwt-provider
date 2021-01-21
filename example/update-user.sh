@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 if [ "$#" -ne "2" ]; then
-  echo "Three arguments must be set e.g. ./update_user.sh email user(json)"
+  echo "Two arguments must be set e.g. ./update-user.sh email user(json)"
   exit 1
 fi
 
