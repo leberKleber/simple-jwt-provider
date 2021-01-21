@@ -17,6 +17,8 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
 	cfg, err := newConfig()
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to parse config")
