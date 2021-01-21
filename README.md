@@ -48,7 +48,7 @@ git clone git@github.com:leberKleber/simple-jwt-provider.git
 docker-compose -f example/docker-compose.yml up
 
 # create user via admin-api
-./example/create_user.sh test.test@test.test password
+./example/create-user.sh test.test@test.test password {}
 
 # login with created user
 ./example/login.sh test.tscest@test.test password
@@ -60,7 +60,7 @@ docker-compose -f example/docker-compose.yml up
 # 3) do crud operations on user
 
 # 1) create password reset request 
-./example/create_password-reset-request.sh test.test@test.test
+./example/create-password-reset-request.sh test.test@test.test
 # 1.1) open browser at http://127.0.0.1:8025/ and copy reset token (token only not the url)
 # 2) reset password with received token
 ./example/reset-password.sh test.test@test.test newPassword {reset-token}
@@ -86,8 +86,9 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 
 | Environment variable              | Description                                                                           | Required                            | Default               |
 | --------------------------------- |:-------------------------------------------------------------------------------------:| -----------------------------------:|----------------------:|
+| SJP_LOG_LEVEL                     | Log-Level can be TRACE DEBUG INFO WARN ERROR FATAL or PANIC                           | no                                  | INFO                  |
 | SJP_SERVER_ADDRESS                | Server-address network-interface to bind on e.g.: '127.0.0.1:8080'                    | no                                  | 0.0.0.0:80            |
-| SJP_JWT_LIFETIME                  | Lifetime of JWT                                                                  | no                                  | 4h                    |
+| SJP_JWT_LIFETIME                  | Lifetime of JWT                                                                       | no                                  | 4h                    |
 | SJP_JWT_PRIVATE_KEY               | JWT PrivateKey ECDSA512                                                               | yes                                 | -                     |
 | SJP_JWT_AUDIENCE                  | Audience private claim which will be applied in each JWT                              | no                                  | -                     |
 | SJP_JWT_ISSUER                    | Issuer private claim which will be applied in each JWT                                | no                                  | -                     |
@@ -152,7 +153,7 @@ Response body (200 - OK):
 ### POST `/v1/auth/password-reset-request`
 
 This endpoint will trigger a password reset request. The user gets a token per mail. With this token, the password can
-be reset via POST@`/v1/auth/password-reset` .
+be reset via POST@`/v1/auth/password-reset`.
 
 Request body:
 ```json
@@ -244,11 +245,12 @@ Mails will be generated based on a set of templates which should be prepared for
 ### Password reset request
 
 An example of this mail type can be found in `/mail-templates/password-reset-request.*`. Available template arguments:
-| Argument | Content | Example usage |
-|--------------------|--------------------------------------------------------|-------------------------------------| |
-Recipient | Users email address | `{{.Recipient}}`                    | | PasswordResetToken | The token which is
-required to reset the password | `{{.PasswordResetToken}}`           | | Claims | All custom-claims which stored in
-relation to the user | `{{if index .Claims "first_name"}}` |
+
+| Argument           | Content                                                | Example usage                       |
+|--------------------|--------------------------------------------------------|-------------------------------------|
+| Recipient          | Users email address                                    | `{{.Recipient}}`                    |
+| PasswordResetToken | The token which is required to reset the password      | `{{.PasswordResetToken}}`           |
+| Claims             | All custom-claims which stored in relation to the user | `{{if index .Claims "first_name"}}` |
 
 ## Development
 

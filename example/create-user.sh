@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 if [ "$#" -ne "3" ]; then
-  echo "Three arguments must be set e.g. ./create_user.sh email password claim(json)"
+  echo "Three arguments must be set e.g. ./create-user.sh email password claim(json)"
   exit 1
 fi
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 if [ "$#" -ne "3" ]; then
-  echo "Two arguments must be set e.g. ./reset-password.sh email password reset-token"
+  echo "Three arguments must be set e.g. ./reset-password.sh email password reset-token"
   exit 1
 fi
 
