@@ -24,6 +24,12 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to parse config")
 	}
 
+	logLvl, err := logrus.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to parse log-level")
+	}
+	logrus.SetLevel(logLvl)
+
 	cfgAsString, err := conf.String(&cfg)
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not build config string")
