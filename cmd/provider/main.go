@@ -36,14 +36,9 @@ func main() {
 	}
 	logrus.WithField("configuration", cfgAsString).Info("Starting provider")
 
-	s, err := storage.New(cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Name, false)
+	s, err := storage.New(cfg.DSN)
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not create storage")
-	}
-
-	err = s.Migrate(cfg.DB.MigrationsFolderPath)
-	if err != nil {
-		logrus.WithError(err).Fatal("Could not migrate database")
 	}
 
 	jwtGenerator, err := jwt.NewProvider(cfg.JWT.PrivateKey, cfg.JWT.Lifetime, cfg.JWT.Audience, cfg.JWT.Issuer, cfg.JWT.Subject)

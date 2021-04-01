@@ -20,14 +20,7 @@ type config struct {
 		Issuer     string        `conf:"env:JWT_ISSUER,help:Issuer private claim which will be applied in each JWT"`
 		Subject    string        `conf:"env:JWT_SUBJECT,help:Subject private claim which will be applied in each JWT"`
 	}
-	DB struct {
-		Host                 string `conf:"help:Database-Host,required"`
-		Port                 int    `conf:"help:Database-Port,default:5432"`
-		Name                 string `conf:"help:Database-name,default:'simple-jwt-provider'"`
-		Username             string `conf:"help:Database-Username"`
-		Password             string `conf:"help:Database-Password,noprint"`
-		MigrationsFolderPath string `conf:"help:Database Migrations Folder Path,default:/db-migrations"`
-	}
+	DSN      string `conf:"help:Data Source Name for persistence,default:host=localhost user=sjp password=sjp dbname=simple-jwt-provider port=5432 sslmode=disable"`
 	AdminAPI struct {
 		Enable   bool   `conf:"help:Enable admin API to manage stored users (true / false),default:false"`
 		Username string `conf:"help:Basic Auth Username if enable-admin-api = true"`

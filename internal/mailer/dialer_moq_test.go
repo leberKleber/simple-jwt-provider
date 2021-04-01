@@ -8,33 +8,28 @@ import (
 	"sync"
 )
 
-var (
-	lockdialerMockDial        sync.RWMutex
-	lockdialerMockDialAndSend sync.RWMutex
-)
-
 // Ensure, that dialerMock does implement dialer.
 // If this is not the case, regenerate this file with moq.
 var _ dialer = &dialerMock{}
 
 // dialerMock is a mock implementation of dialer.
 //
-//     func TestSomethingThatUsesdialer(t *testing.T) {
+// 	func TestSomethingThatUsesdialer(t *testing.T) {
 //
-//         // make and configure a mocked dialer
-//         mockeddialer := &dialerMock{
-//             DialFunc: func() (mail.SendCloser, error) {
-// 	               panic("mock out the Dial method")
-//             },
-//             DialAndSendFunc: func(msgs ...*mail.Message) error {
-// 	               panic("mock out the DialAndSend method")
-//             },
-//         }
+// 		// make and configure a mocked dialer
+// 		mockeddialer := &dialerMock{
+// 			DialFunc: func() (mail.SendCloser, error) {
+// 				panic("mock out the Dial method")
+// 			},
+// 			DialAndSendFunc: func(msgs ...*mail.Message) error {
+// 				panic("mock out the DialAndSend method")
+// 			},
+// 		}
 //
-//         // use mockeddialer in code that requires dialer
-//         // and then make assertions.
+// 		// use mockeddialer in code that requires dialer
+// 		// and then make assertions.
 //
-//     }
+// 	}
 type dialerMock struct {
 	// DialFunc mocks the Dial method.
 	DialFunc func() (mail.SendCloser, error)
@@ -53,6 +48,8 @@ type dialerMock struct {
 			Msgs []*mail.Message
 		}
 	}
+	lockDial        sync.RWMutex
+	lockDialAndSend sync.RWMutex
 }
 
 // Dial calls DialFunc.
@@ -62,9 +59,9 @@ func (mock *dialerMock) Dial() (mail.SendCloser, error) {
 	}
 	callInfo := struct {
 	}{}
-	lockdialerMockDial.Lock()
+	mock.lockDial.Lock()
 	mock.calls.Dial = append(mock.calls.Dial, callInfo)
-	lockdialerMockDial.Unlock()
+	mock.lockDial.Unlock()
 	return mock.DialFunc()
 }
 
@@ -75,9 +72,9 @@ func (mock *dialerMock) DialCalls() []struct {
 } {
 	var calls []struct {
 	}
-	lockdialerMockDial.RLock()
+	mock.lockDial.RLock()
 	calls = mock.calls.Dial
-	lockdialerMockDial.RUnlock()
+	mock.lockDial.RUnlock()
 	return calls
 }
 
@@ -91,9 +88,9 @@ func (mock *dialerMock) DialAndSend(msgs ...*mail.Message) error {
 	}{
 		Msgs: msgs,
 	}
-	lockdialerMockDialAndSend.Lock()
+	mock.lockDialAndSend.Lock()
 	mock.calls.DialAndSend = append(mock.calls.DialAndSend, callInfo)
-	lockdialerMockDialAndSend.Unlock()
+	mock.lockDialAndSend.Unlock()
 	return mock.DialAndSendFunc(msgs...)
 }
 
@@ -106,8 +103,8 @@ func (mock *dialerMock) DialAndSendCalls() []struct {
 	var calls []struct {
 		Msgs []*mail.Message
 	}
-	lockdialerMockDialAndSend.RLock()
+	mock.lockDialAndSend.RLock()
 	calls = mock.calls.DialAndSend
-	lockdialerMockDialAndSend.RUnlock()
+	mock.lockDialAndSend.RUnlock()
 	return calls
 }
