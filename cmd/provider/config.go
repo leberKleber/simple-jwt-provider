@@ -20,7 +20,7 @@ type config struct {
 		Issuer     string        `conf:"env:JWT_ISSUER,help:Issuer private claim which will be applied in each JWT"`
 		Subject    string        `conf:"env:JWT_SUBJECT,help:Subject private claim which will be applied in each JWT"`
 	}
-	DSN      string `conf:"help:Data Source Name for persistence,default:host=localhost user=sjp password=sjp dbname=simple-jwt-provider port=5432 sslmode=disable"`
+	DSN      string `conf:"help:Data Source Name for persistence"`
 	AdminAPI struct {
 		Enable   bool   `conf:"help:Enable admin API to manage stored users (true / false),default:false"`
 		Username string `conf:"help:Basic Auth Username if enable-admin-api = true"`
