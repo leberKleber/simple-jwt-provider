@@ -6,6 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"reflect"
 	"regexp"
 	"testing"
@@ -119,15 +120,15 @@ func TestProvider_Login(t *testing.T) {
 			var givenStorageEMail string
 			var givenGenerateRefreshTokenEMail string
 			var givenGenerateAccessTokenEMail string
-			var givenGenerateAccessTokenUserClaims map[string]interface{}
+			var givenGenerateAccessTokenUserClaims storage.Claims
 			toTest := Provider{
 				Storage: &StorageMock{
 					UserFunc: func(email string) (storage.User, error) {
 						givenStorageEMail = email
 						return tt.dbReturnUser, tt.dbReturnError
 					},
-					CreateTokenFunc: func(t storage.Token) (int64, error) {
-						return 0, tt.createTokenError
+					CreateTokenFunc: func(t *storage.Token) error {
+						return tt.createTokenError
 					},
 				},
 				JWTProvider: &JWTProviderMock{
@@ -167,7 +168,7 @@ func TestProvider_Login(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(givenGenerateAccessTokenUserClaims, tt.dbReturnUser.Claims) {
-				t.Errorf("Generator.GenerateAccessToken userClaims are not as expected: \nExpected:\n%#v\nGiven:\n%#v", tt.generatorExpectedEMail, givenGenerateAccessTokenEMail)
+				t.Errorf("Generator.GenerateAccessToken userClaims are not as expected: \nExpected:\n%#v\nGiven:\n%#v", givenGenerateAccessTokenUserClaims, tt.dbReturnUser.Claims)
 			}
 
 			if givenGenerateRefreshTokenEMail != tt.generatorExpectedEMail {
@@ -189,7 +190,7 @@ func TestProvider_Refresh(t *testing.T) {
 		expectedError                   error
 		expectedAccessToken             string
 		expectedRefreshToken            string
-		expectedTokenID                 int64
+		expectedTokenID                 uint
 		expectedJWTID                   string
 		generatorExpectedEMail          string
 		generateAccessToken             string
@@ -220,7 +221,7 @@ func TestProvider_Refresh(t *testing.T) {
 			isTokenValidClaims:     jwt.MapClaims{"email": "test@test.test", "jit": "jwt-id"},
 			isTokenValidToken:      "givenRefreshToken",
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			expectedAccessToken:  "myJWT",
 			expectedRefreshToken: "myRefreshJWT",
@@ -241,7 +242,7 @@ func TestProvider_Refresh(t *testing.T) {
 			isTokenValidClaims:  jwt.MapClaims{"email": "not@existing.user", "jit": "jwt-id"},
 			isTokenValidToken:   "givenRefreshToken",
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			expectedError: ErrUserNotFound,
 			dbReturnError: storage.ErrUserNotFound,
@@ -253,7 +254,7 @@ func TestProvider_Refresh(t *testing.T) {
 			isTokenValidIsValid: true,
 			isTokenValidClaims:  jwt.MapClaims{"email": "test@test.test", "jit": "jwt-id"},
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			expectedError: errors.New("failed to find user with email \"test@test.test\": unexpected error"),
 			dbReturnError: errors.New("unexpected error"),
@@ -271,7 +272,7 @@ func TestProvider_Refresh(t *testing.T) {
 			isTokenValidIsValid: true,
 			isTokenValidClaims:  jwt.MapClaims{"email": "test@test.test", "jit": "jwt-id"},
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			generateAccessTokenError: errors.New("error 42"),
 			expectedError:            errors.New("failed to generate access-token: error 42"),
@@ -289,7 +290,7 @@ func TestProvider_Refresh(t *testing.T) {
 			isTokenValidIsValid: true,
 			isTokenValidClaims:  jwt.MapClaims{"email": "test@test.test", "jit": "jwt-id"},
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			generateRefreshTokenError: errors.New("error 42"),
 			expectedError:             errors.New("failed to generate refresh-token: error 42"),
@@ -299,7 +300,7 @@ func TestProvider_Refresh(t *testing.T) {
 			givenPassword:     "wrongPassword",
 			isTokenValidErr:   errors.New("given token is not parsable"),
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			expectedError: errors.New("given token is not parsable: given token is not parsable"),
 			dbReturnUser: storage.User{
@@ -355,7 +356,7 @@ func TestProvider_Refresh(t *testing.T) {
 			isTokenValidIsValid: true,
 			isTokenValidClaims:  jwt.MapClaims{"email": "test@test.test", "jit": "jwt-id"},
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			deleteTokenErr: errors.New("nope"),
 			expectedError:  errors.New("failed to delete refresh-token: nope"),
@@ -365,7 +366,7 @@ func TestProvider_Refresh(t *testing.T) {
 			isTokenValidIsValid: true,
 			isTokenValidClaims:  jwt.MapClaims{"email": "test@test.test", "jit": "jwt-id"},
 			tokensByEMailAndTokenFuncTokens: []storage.Token{
-				{ID: 1234, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
+				{Model: gorm.Model{ID: 1234}, EMail: "test.test@test.de", Type: storage.TokenTypeRefresh},
 			},
 			createTokenErr: errors.New("nope"),
 			expectedError:  errors.New("failed to persist refresh-token: nope"),
@@ -377,11 +378,11 @@ func TestProvider_Refresh(t *testing.T) {
 			var givenStorageEMail string
 			var givenGenerateRefreshTokenEMail string
 			var givenGenerateAccessTokenEMail string
-			var givenGenerateAccessTokenUserClaims map[string]interface{}
+			var givenGenerateAccessTokenUserClaims storage.Claims
 			var givenIsTokenValidToken string
 			var givenTokensByEMailAndTokenEMail string
 			var givenTokensByEMailAndTokenToken string
-			var givenDeleteTokenID int64
+			var givenDeleteTokenID uint
 			toTest := Provider{
 				Storage: &StorageMock{
 					UserFunc: func(email string) (storage.User, error) {
@@ -393,12 +394,12 @@ func TestProvider_Refresh(t *testing.T) {
 						givenTokensByEMailAndTokenToken = token
 						return tt.tokensByEMailAndTokenFuncTokens, tt.tokensByEMailAndTokenFuncErr
 					},
-					DeleteTokenFunc: func(id int64) error {
+					DeleteTokenFunc: func(id uint) error {
 						givenDeleteTokenID = id
 						return tt.deleteTokenErr
 					},
-					CreateTokenFunc: func(t storage.Token) (int64, error) {
-						return 0, tt.createTokenErr
+					CreateTokenFunc: func(t *storage.Token) error {
+						return tt.createTokenErr
 					},
 				},
 				JWTProvider: &JWTProviderMock{
@@ -442,7 +443,7 @@ func TestProvider_Refresh(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(givenGenerateAccessTokenUserClaims, tt.dbReturnUser.Claims) {
-				t.Errorf("Generator.GenerateAccessToken userClaims are not as expected: \nExpected:\n%#v\nGiven:\n%#v", tt.generatorExpectedEMail, givenGenerateAccessTokenEMail)
+				t.Errorf("Generator.GenerateAccessToken userClaims are not as expected: \nExpected:\n%#v\nGiven:\n%#v", givenGenerateAccessTokenUserClaims, tt.dbReturnUser.Claims)
 			}
 
 			if givenGenerateRefreshTokenEMail != tt.generatorExpectedEMail {
@@ -489,7 +490,9 @@ func TestProvider_CreatePasswordResetRequest(t *testing.T) {
 			dbExpectedToken: storage.Token{
 				Type:  "reset",
 				EMail: "test.test@test.test",
-				ID:    0,
+				Model: gorm.Model{
+					ID: 0,
+				},
 			},
 			expectedError: nil,
 		}, {
@@ -510,7 +513,9 @@ func TestProvider_CreatePasswordResetRequest(t *testing.T) {
 			dbExpectedToken: storage.Token{
 				Type:  "reset",
 				EMail: "test.test@test",
-				ID:    0,
+				Model: gorm.Model{
+					ID: 0,
+				},
 			},
 		}, {
 			name:                  "Mailer error",
@@ -521,7 +526,9 @@ func TestProvider_CreatePasswordResetRequest(t *testing.T) {
 			dbExpectedToken: storage.Token{
 				Type:  "reset",
 				EMail: "test.test@test",
-				ID:    0,
+				Model: gorm.Model{
+					ID: 0,
+				},
 			},
 		}, {
 			name:                  "Unable to generate HEX token",
@@ -552,9 +559,9 @@ func TestProvider_CreatePasswordResetRequest(t *testing.T) {
 						storageUserEMail = email
 						return storage.User{}, tt.dbUserReturnError
 					},
-					CreateTokenFunc: func(t storage.Token) (int64, error) {
-						storageCreateTokenToken = t
-						return 0, tt.dbCreateTokenReturnError
+					CreateTokenFunc: func(t *storage.Token) error {
+						storageCreateTokenToken = *t
+						return tt.dbCreateTokenReturnError
 					},
 				},
 				Mailer: &MailerMock{
@@ -621,8 +628,8 @@ func TestProvider_ResetPassword(t *testing.T) {
 			givenResetToken:  "resetToken",
 			givenEMail:       "email",
 			dbToken: []storage.Token{
-				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
-				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+				{Model: gorm.Model{ID: 4, CreatedAt: time.Now()}, Token: "myToken1", Type: "reset", EMail: "email"},
+				{Model: gorm.Model{ID: 5, CreatedAt: time.Now()}, Token: "myToken2", Type: "other", EMail: "email"},
 			},
 		},
 		{
@@ -648,8 +655,8 @@ func TestProvider_ResetPassword(t *testing.T) {
 			givenResetToken:  "resetToken",
 			givenEMail:       "email",
 			dbToken: []storage.Token{
-				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
-				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+				{Model: gorm.Model{ID: 4, CreatedAt: time.Now()}, Token: "myToken1", Type: "reset", EMail: "email"},
+				{Model: gorm.Model{ID: 5, CreatedAt: time.Now()}, Token: "myToken2", Type: "other", EMail: "email"},
 			},
 			dbUserError:   errors.New("unexpected error"),
 			expectedError: errors.New("failed to find user with email \"email\": unexpected error"),
@@ -660,8 +667,8 @@ func TestProvider_ResetPassword(t *testing.T) {
 			givenResetToken:  "resetToken",
 			givenEMail:       "email",
 			dbToken: []storage.Token{
-				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
-				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+				{Model: gorm.Model{ID: 4, CreatedAt: time.Now()}, Token: "myToken1", Type: "reset", EMail: "email"},
+				{Model: gorm.Model{ID: 5, CreatedAt: time.Now()}, Token: "myToken2", Type: "other", EMail: "email"},
 			},
 			dbUpdateUserError: errors.New("unexpected error"),
 			expectedError:     errors.New("failed to update user: unexpected error"),
@@ -672,8 +679,8 @@ func TestProvider_ResetPassword(t *testing.T) {
 			givenResetToken:  "resetToken",
 			givenEMail:       "email",
 			dbToken: []storage.Token{
-				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
-				{ID: 5, CreatedAt: time.Now(), Token: "myToken2", Type: "other", EMail: "email"},
+				{Model: gorm.Model{ID: 4, CreatedAt: time.Now()}, Token: "myToken1", Type: "reset", EMail: "email"},
+				{Model: gorm.Model{ID: 5, CreatedAt: time.Now()}, Token: "myToken2", Type: "other", EMail: "email"},
 			},
 			dbDeleteTokenError: errors.New("unexpected error"),
 			expectedError:      errors.New("failed to delete token: unexpected error"),
@@ -685,7 +692,7 @@ func TestProvider_ResetPassword(t *testing.T) {
 			givenEMail:          "email",
 			bcryptPasswordError: errors.New("something went wrong"),
 			dbToken: []storage.Token{
-				{ID: 4, CreatedAt: time.Now(), Token: "myToken1", Type: "reset", EMail: "email"},
+				{Model: gorm.Model{ID: 4, CreatedAt: time.Now()}, Token: "myToken1", Type: "reset", EMail: "email"},
 			},
 			expectedError: errors.New("failed to bcrypt password: something went wrong"),
 		},
@@ -713,7 +720,7 @@ func TestProvider_ResetPassword(t *testing.T) {
 					UpdateUserFunc: func(user storage.User) error {
 						return tt.dbUpdateUserError
 					},
-					DeleteTokenFunc: func(id int64) error {
+					DeleteTokenFunc: func(id uint) error {
 						return tt.dbDeleteTokenError
 					},
 				},

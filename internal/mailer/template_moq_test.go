@@ -8,29 +8,25 @@ import (
 	"sync"
 )
 
-var (
-	locktemplateMockRender sync.RWMutex
-)
-
 // Ensure, that templateMock does implement template.
 // If this is not the case, regenerate this file with moq.
 var _ template = &templateMock{}
 
 // templateMock is a mock implementation of template.
 //
-//     func TestSomethingThatUsestemplate(t *testing.T) {
+// 	func TestSomethingThatUsestemplate(t *testing.T) {
 //
-//         // make and configure a mocked template
-//         mockedtemplate := &templateMock{
-//             RenderFunc: func(args interface{}) (*mail.Message, error) {
-// 	               panic("mock out the Render method")
-//             },
-//         }
+// 		// make and configure a mocked template
+// 		mockedtemplate := &templateMock{
+// 			RenderFunc: func(args interface{}) (*mail.Message, error) {
+// 				panic("mock out the Render method")
+// 			},
+// 		}
 //
-//         // use mockedtemplate in code that requires template
-//         // and then make assertions.
+// 		// use mockedtemplate in code that requires template
+// 		// and then make assertions.
 //
-//     }
+// 	}
 type templateMock struct {
 	// RenderFunc mocks the Render method.
 	RenderFunc func(args interface{}) (*mail.Message, error)
@@ -43,6 +39,7 @@ type templateMock struct {
 			Args interface{}
 		}
 	}
+	lockRender sync.RWMutex
 }
 
 // Render calls RenderFunc.
@@ -55,9 +52,9 @@ func (mock *templateMock) Render(args interface{}) (*mail.Message, error) {
 	}{
 		Args: args,
 	}
-	locktemplateMockRender.Lock()
+	mock.lockRender.Lock()
 	mock.calls.Render = append(mock.calls.Render, callInfo)
-	locktemplateMockRender.Unlock()
+	mock.lockRender.Unlock()
 	return mock.RenderFunc(args)
 }
 
@@ -70,8 +67,8 @@ func (mock *templateMock) RenderCalls() []struct {
 	var calls []struct {
 		Args interface{}
 	}
-	locktemplateMockRender.RLock()
+	mock.lockRender.RLock()
 	calls = mock.calls.Render
-	locktemplateMockRender.RUnlock()
+	mock.lockRender.RUnlock()
 	return calls
 }

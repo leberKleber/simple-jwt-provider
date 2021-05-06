@@ -53,11 +53,10 @@ func (p Provider) Login(email, password string) (accessToken, refreshToken strin
 		return "", "", fmt.Errorf("failed to generate refresh-token: %w", err)
 	}
 
-	_, err = p.Storage.CreateToken(storage.Token{
-		EMail:     email,
-		Token:     jwtID,
-		Type:      storage.TokenTypeRefresh,
-		CreatedAt: nowFunc(),
+	err = p.Storage.CreateToken(&storage.Token{
+		EMail: email,
+		Token: jwtID,
+		Type:  storage.TokenTypeRefresh,
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("failed to persist refresh-token: %w", err)
@@ -132,11 +131,10 @@ func (p Provider) Refresh(refreshToken string) (newAccessToken, newRefreshToken 
 		return "", "", fmt.Errorf("failed to generate refresh-token: %w", err)
 	}
 
-	_, err = p.Storage.CreateToken(storage.Token{
-		EMail:     email,
-		Token:     jwtID,
-		Type:      storage.TokenTypeRefresh,
-		CreatedAt: nowFunc(),
+	err = p.Storage.CreateToken(&storage.Token{
+		EMail: email,
+		Token: jwtID,
+		Type:  storage.TokenTypeRefresh,
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("failed to persist refresh-token: %w", err)
@@ -161,11 +159,10 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 		return fmt.Errorf("failed to generate password reset token: %w", err)
 	}
 
-	_, err = p.Storage.CreateToken(storage.Token{
-		EMail:     email,
-		Token:     t,
-		Type:      storage.TokenTypeReset,
-		CreatedAt: nowFunc(),
+	err = p.Storage.CreateToken(&storage.Token{
+		EMail: email,
+		Token: t,
+		Type:  storage.TokenTypeReset,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create password reset token for email %q: %w", email, err)

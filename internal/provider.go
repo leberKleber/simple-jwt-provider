@@ -12,9 +12,9 @@ type Storage interface {
 	CreateUser(user storage.User) error
 	UpdateUser(user storage.User) error
 	DeleteUser(email string) error
-	CreateToken(t storage.Token) (int64, error)
+	CreateToken(t *storage.Token) error
 	TokensByEMailAndToken(email, token string) ([]storage.Token, error)
-	DeleteToken(id int64) error
+	DeleteToken(id uint) error
 }
 
 // JWTProvider encapsulates jwt.Provider to generate mocks

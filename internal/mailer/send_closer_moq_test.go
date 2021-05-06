@@ -8,33 +8,28 @@ import (
 	"sync"
 )
 
-var (
-	locksendCloserMockClose sync.RWMutex
-	locksendCloserMockSend  sync.RWMutex
-)
-
 // Ensure, that sendCloserMock does implement sendCloser.
 // If this is not the case, regenerate this file with moq.
 var _ sendCloser = &sendCloserMock{}
 
 // sendCloserMock is a mock implementation of sendCloser.
 //
-//     func TestSomethingThatUsessendCloser(t *testing.T) {
+// 	func TestSomethingThatUsessendCloser(t *testing.T) {
 //
-//         // make and configure a mocked sendCloser
-//         mockedsendCloser := &sendCloserMock{
-//             CloseFunc: func() error {
-// 	               panic("mock out the Close method")
-//             },
-//             SendFunc: func(from string, to []string, msg io.WriterTo) error {
-// 	               panic("mock out the Send method")
-//             },
-//         }
+// 		// make and configure a mocked sendCloser
+// 		mockedsendCloser := &sendCloserMock{
+// 			CloseFunc: func() error {
+// 				panic("mock out the Close method")
+// 			},
+// 			SendFunc: func(from string, to []string, msg io.WriterTo) error {
+// 				panic("mock out the Send method")
+// 			},
+// 		}
 //
-//         // use mockedsendCloser in code that requires sendCloser
-//         // and then make assertions.
+// 		// use mockedsendCloser in code that requires sendCloser
+// 		// and then make assertions.
 //
-//     }
+// 	}
 type sendCloserMock struct {
 	// CloseFunc mocks the Close method.
 	CloseFunc func() error
@@ -57,6 +52,8 @@ type sendCloserMock struct {
 			Msg io.WriterTo
 		}
 	}
+	lockClose sync.RWMutex
+	lockSend  sync.RWMutex
 }
 
 // Close calls CloseFunc.
@@ -66,9 +63,9 @@ func (mock *sendCloserMock) Close() error {
 	}
 	callInfo := struct {
 	}{}
-	locksendCloserMockClose.Lock()
+	mock.lockClose.Lock()
 	mock.calls.Close = append(mock.calls.Close, callInfo)
-	locksendCloserMockClose.Unlock()
+	mock.lockClose.Unlock()
 	return mock.CloseFunc()
 }
 
@@ -79,9 +76,9 @@ func (mock *sendCloserMock) CloseCalls() []struct {
 } {
 	var calls []struct {
 	}
-	locksendCloserMockClose.RLock()
+	mock.lockClose.RLock()
 	calls = mock.calls.Close
-	locksendCloserMockClose.RUnlock()
+	mock.lockClose.RUnlock()
 	return calls
 }
 
@@ -99,9 +96,9 @@ func (mock *sendCloserMock) Send(from string, to []string, msg io.WriterTo) erro
 		To:   to,
 		Msg:  msg,
 	}
-	locksendCloserMockSend.Lock()
+	mock.lockSend.Lock()
 	mock.calls.Send = append(mock.calls.Send, callInfo)
-	locksendCloserMockSend.Unlock()
+	mock.lockSend.Unlock()
 	return mock.SendFunc(from, to, msg)
 }
 
@@ -118,8 +115,8 @@ func (mock *sendCloserMock) SendCalls() []struct {
 		To   []string
 		Msg  io.WriterTo
 	}
-	locksendCloserMockSend.RLock()
+	mock.lockSend.RLock()
 	calls = mock.calls.Send
-	locksendCloserMockSend.RUnlock()
+	mock.lockSend.RUnlock()
 	return calls
 }
