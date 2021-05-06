@@ -7,29 +7,25 @@ import (
 	"sync"
 )
 
-var (
-	lockMailerMockSendPasswordResetRequestEMail sync.RWMutex
-)
-
 // Ensure, that MailerMock does implement Mailer.
 // If this is not the case, regenerate this file with moq.
 var _ Mailer = &MailerMock{}
 
 // MailerMock is a mock implementation of Mailer.
 //
-//     func TestSomethingThatUsesMailer(t *testing.T) {
+// 	func TestSomethingThatUsesMailer(t *testing.T) {
 //
-//         // make and configure a mocked Mailer
-//         mockedMailer := &MailerMock{
-//             SendPasswordResetRequestEMailFunc: func(recipient string, passwordResetToken string, claims map[string]interface{}) error {
-// 	               panic("mock out the SendPasswordResetRequestEMail method")
-//             },
-//         }
+// 		// make and configure a mocked Mailer
+// 		mockedMailer := &MailerMock{
+// 			SendPasswordResetRequestEMailFunc: func(recipient string, passwordResetToken string, claims map[string]interface{}) error {
+// 				panic("mock out the SendPasswordResetRequestEMail method")
+// 			},
+// 		}
 //
-//         // use mockedMailer in code that requires Mailer
-//         // and then make assertions.
+// 		// use mockedMailer in code that requires Mailer
+// 		// and then make assertions.
 //
-//     }
+// 	}
 type MailerMock struct {
 	// SendPasswordResetRequestEMailFunc mocks the SendPasswordResetRequestEMail method.
 	SendPasswordResetRequestEMailFunc func(recipient string, passwordResetToken string, claims map[string]interface{}) error
@@ -46,6 +42,7 @@ type MailerMock struct {
 			Claims map[string]interface{}
 		}
 	}
+	lockSendPasswordResetRequestEMail sync.RWMutex
 }
 
 // SendPasswordResetRequestEMail calls SendPasswordResetRequestEMailFunc.
@@ -62,9 +59,9 @@ func (mock *MailerMock) SendPasswordResetRequestEMail(recipient string, password
 		PasswordResetToken: passwordResetToken,
 		Claims:             claims,
 	}
-	lockMailerMockSendPasswordResetRequestEMail.Lock()
+	mock.lockSendPasswordResetRequestEMail.Lock()
 	mock.calls.SendPasswordResetRequestEMail = append(mock.calls.SendPasswordResetRequestEMail, callInfo)
-	lockMailerMockSendPasswordResetRequestEMail.Unlock()
+	mock.lockSendPasswordResetRequestEMail.Unlock()
 	return mock.SendPasswordResetRequestEMailFunc(recipient, passwordResetToken, claims)
 }
 
@@ -81,8 +78,8 @@ func (mock *MailerMock) SendPasswordResetRequestEMailCalls() []struct {
 		PasswordResetToken string
 		Claims             map[string]interface{}
 	}
-	lockMailerMockSendPasswordResetRequestEMail.RLock()
+	mock.lockSendPasswordResetRequestEMail.RLock()
 	calls = mock.calls.SendPasswordResetRequestEMail
-	lockMailerMockSendPasswordResetRequestEMail.RUnlock()
+	mock.lockSendPasswordResetRequestEMail.RUnlock()
 	return calls
 }

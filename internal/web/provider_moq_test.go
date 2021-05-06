@@ -8,57 +8,46 @@ import (
 	"sync"
 )
 
-var (
-	lockProviderMockCreatePasswordResetRequest sync.RWMutex
-	lockProviderMockCreateUser                 sync.RWMutex
-	lockProviderMockDeleteUser                 sync.RWMutex
-	lockProviderMockGetUser                    sync.RWMutex
-	lockProviderMockLogin                      sync.RWMutex
-	lockProviderMockRefresh                    sync.RWMutex
-	lockProviderMockResetPassword              sync.RWMutex
-	lockProviderMockUpdateUser                 sync.RWMutex
-)
-
 // Ensure, that ProviderMock does implement Provider.
 // If this is not the case, regenerate this file with moq.
 var _ Provider = &ProviderMock{}
 
 // ProviderMock is a mock implementation of Provider.
 //
-//     func TestSomethingThatUsesProvider(t *testing.T) {
+// 	func TestSomethingThatUsesProvider(t *testing.T) {
 //
-//         // make and configure a mocked Provider
-//         mockedProvider := &ProviderMock{
-//             CreatePasswordResetRequestFunc: func(email string) error {
-// 	               panic("mock out the CreatePasswordResetRequest method")
-//             },
-//             CreateUserFunc: func(user internal.User) error {
-// 	               panic("mock out the CreateUser method")
-//             },
-//             DeleteUserFunc: func(email string) error {
-// 	               panic("mock out the DeleteUser method")
-//             },
-//             GetUserFunc: func(email string) (internal.User, error) {
-// 	               panic("mock out the GetUser method")
-//             },
-//             LoginFunc: func(email string, password string) (string, string, error) {
-// 	               panic("mock out the Login method")
-//             },
-//             RefreshFunc: func(refreshToken string) (string, string, error) {
-// 	               panic("mock out the Refresh method")
-//             },
-//             ResetPasswordFunc: func(email string, resetToken string, password string) error {
-// 	               panic("mock out the ResetPassword method")
-//             },
-//             UpdateUserFunc: func(email string, user internal.User) (internal.User, error) {
-// 	               panic("mock out the UpdateUser method")
-//             },
-//         }
+// 		// make and configure a mocked Provider
+// 		mockedProvider := &ProviderMock{
+// 			CreatePasswordResetRequestFunc: func(email string) error {
+// 				panic("mock out the CreatePasswordResetRequest method")
+// 			},
+// 			CreateUserFunc: func(user internal.User) error {
+// 				panic("mock out the CreateUser method")
+// 			},
+// 			DeleteUserFunc: func(email string) error {
+// 				panic("mock out the DeleteUser method")
+// 			},
+// 			GetUserFunc: func(email string) (internal.User, error) {
+// 				panic("mock out the GetUser method")
+// 			},
+// 			LoginFunc: func(email string, password string) (string, string, error) {
+// 				panic("mock out the Login method")
+// 			},
+// 			RefreshFunc: func(refreshToken string) (string, string, error) {
+// 				panic("mock out the Refresh method")
+// 			},
+// 			ResetPasswordFunc: func(email string, resetToken string, password string) error {
+// 				panic("mock out the ResetPassword method")
+// 			},
+// 			UpdateUserFunc: func(email string, user internal.User) (internal.User, error) {
+// 				panic("mock out the UpdateUser method")
+// 			},
+// 		}
 //
-//         // use mockedProvider in code that requires Provider
-//         // and then make assertions.
+// 		// use mockedProvider in code that requires Provider
+// 		// and then make assertions.
 //
-//     }
+// 	}
 type ProviderMock struct {
 	// CreatePasswordResetRequestFunc mocks the CreatePasswordResetRequest method.
 	CreatePasswordResetRequestFunc func(email string) error
@@ -135,6 +124,14 @@ type ProviderMock struct {
 			User internal.User
 		}
 	}
+	lockCreatePasswordResetRequest sync.RWMutex
+	lockCreateUser                 sync.RWMutex
+	lockDeleteUser                 sync.RWMutex
+	lockGetUser                    sync.RWMutex
+	lockLogin                      sync.RWMutex
+	lockRefresh                    sync.RWMutex
+	lockResetPassword              sync.RWMutex
+	lockUpdateUser                 sync.RWMutex
 }
 
 // CreatePasswordResetRequest calls CreatePasswordResetRequestFunc.
@@ -147,9 +144,9 @@ func (mock *ProviderMock) CreatePasswordResetRequest(email string) error {
 	}{
 		Email: email,
 	}
-	lockProviderMockCreatePasswordResetRequest.Lock()
+	mock.lockCreatePasswordResetRequest.Lock()
 	mock.calls.CreatePasswordResetRequest = append(mock.calls.CreatePasswordResetRequest, callInfo)
-	lockProviderMockCreatePasswordResetRequest.Unlock()
+	mock.lockCreatePasswordResetRequest.Unlock()
 	return mock.CreatePasswordResetRequestFunc(email)
 }
 
@@ -162,9 +159,9 @@ func (mock *ProviderMock) CreatePasswordResetRequestCalls() []struct {
 	var calls []struct {
 		Email string
 	}
-	lockProviderMockCreatePasswordResetRequest.RLock()
+	mock.lockCreatePasswordResetRequest.RLock()
 	calls = mock.calls.CreatePasswordResetRequest
-	lockProviderMockCreatePasswordResetRequest.RUnlock()
+	mock.lockCreatePasswordResetRequest.RUnlock()
 	return calls
 }
 
@@ -178,9 +175,9 @@ func (mock *ProviderMock) CreateUser(user internal.User) error {
 	}{
 		User: user,
 	}
-	lockProviderMockCreateUser.Lock()
+	mock.lockCreateUser.Lock()
 	mock.calls.CreateUser = append(mock.calls.CreateUser, callInfo)
-	lockProviderMockCreateUser.Unlock()
+	mock.lockCreateUser.Unlock()
 	return mock.CreateUserFunc(user)
 }
 
@@ -193,9 +190,9 @@ func (mock *ProviderMock) CreateUserCalls() []struct {
 	var calls []struct {
 		User internal.User
 	}
-	lockProviderMockCreateUser.RLock()
+	mock.lockCreateUser.RLock()
 	calls = mock.calls.CreateUser
-	lockProviderMockCreateUser.RUnlock()
+	mock.lockCreateUser.RUnlock()
 	return calls
 }
 
@@ -209,9 +206,9 @@ func (mock *ProviderMock) DeleteUser(email string) error {
 	}{
 		Email: email,
 	}
-	lockProviderMockDeleteUser.Lock()
+	mock.lockDeleteUser.Lock()
 	mock.calls.DeleteUser = append(mock.calls.DeleteUser, callInfo)
-	lockProviderMockDeleteUser.Unlock()
+	mock.lockDeleteUser.Unlock()
 	return mock.DeleteUserFunc(email)
 }
 
@@ -224,9 +221,9 @@ func (mock *ProviderMock) DeleteUserCalls() []struct {
 	var calls []struct {
 		Email string
 	}
-	lockProviderMockDeleteUser.RLock()
+	mock.lockDeleteUser.RLock()
 	calls = mock.calls.DeleteUser
-	lockProviderMockDeleteUser.RUnlock()
+	mock.lockDeleteUser.RUnlock()
 	return calls
 }
 
@@ -240,9 +237,9 @@ func (mock *ProviderMock) GetUser(email string) (internal.User, error) {
 	}{
 		Email: email,
 	}
-	lockProviderMockGetUser.Lock()
+	mock.lockGetUser.Lock()
 	mock.calls.GetUser = append(mock.calls.GetUser, callInfo)
-	lockProviderMockGetUser.Unlock()
+	mock.lockGetUser.Unlock()
 	return mock.GetUserFunc(email)
 }
 
@@ -255,9 +252,9 @@ func (mock *ProviderMock) GetUserCalls() []struct {
 	var calls []struct {
 		Email string
 	}
-	lockProviderMockGetUser.RLock()
+	mock.lockGetUser.RLock()
 	calls = mock.calls.GetUser
-	lockProviderMockGetUser.RUnlock()
+	mock.lockGetUser.RUnlock()
 	return calls
 }
 
@@ -273,9 +270,9 @@ func (mock *ProviderMock) Login(email string, password string) (string, string, 
 		Email:    email,
 		Password: password,
 	}
-	lockProviderMockLogin.Lock()
+	mock.lockLogin.Lock()
 	mock.calls.Login = append(mock.calls.Login, callInfo)
-	lockProviderMockLogin.Unlock()
+	mock.lockLogin.Unlock()
 	return mock.LoginFunc(email, password)
 }
 
@@ -290,9 +287,9 @@ func (mock *ProviderMock) LoginCalls() []struct {
 		Email    string
 		Password string
 	}
-	lockProviderMockLogin.RLock()
+	mock.lockLogin.RLock()
 	calls = mock.calls.Login
-	lockProviderMockLogin.RUnlock()
+	mock.lockLogin.RUnlock()
 	return calls
 }
 
@@ -306,9 +303,9 @@ func (mock *ProviderMock) Refresh(refreshToken string) (string, string, error) {
 	}{
 		RefreshToken: refreshToken,
 	}
-	lockProviderMockRefresh.Lock()
+	mock.lockRefresh.Lock()
 	mock.calls.Refresh = append(mock.calls.Refresh, callInfo)
-	lockProviderMockRefresh.Unlock()
+	mock.lockRefresh.Unlock()
 	return mock.RefreshFunc(refreshToken)
 }
 
@@ -321,9 +318,9 @@ func (mock *ProviderMock) RefreshCalls() []struct {
 	var calls []struct {
 		RefreshToken string
 	}
-	lockProviderMockRefresh.RLock()
+	mock.lockRefresh.RLock()
 	calls = mock.calls.Refresh
-	lockProviderMockRefresh.RUnlock()
+	mock.lockRefresh.RUnlock()
 	return calls
 }
 
@@ -341,9 +338,9 @@ func (mock *ProviderMock) ResetPassword(email string, resetToken string, passwor
 		ResetToken: resetToken,
 		Password:   password,
 	}
-	lockProviderMockResetPassword.Lock()
+	mock.lockResetPassword.Lock()
 	mock.calls.ResetPassword = append(mock.calls.ResetPassword, callInfo)
-	lockProviderMockResetPassword.Unlock()
+	mock.lockResetPassword.Unlock()
 	return mock.ResetPasswordFunc(email, resetToken, password)
 }
 
@@ -360,9 +357,9 @@ func (mock *ProviderMock) ResetPasswordCalls() []struct {
 		ResetToken string
 		Password   string
 	}
-	lockProviderMockResetPassword.RLock()
+	mock.lockResetPassword.RLock()
 	calls = mock.calls.ResetPassword
-	lockProviderMockResetPassword.RUnlock()
+	mock.lockResetPassword.RUnlock()
 	return calls
 }
 
@@ -378,9 +375,9 @@ func (mock *ProviderMock) UpdateUser(email string, user internal.User) (internal
 		Email: email,
 		User:  user,
 	}
-	lockProviderMockUpdateUser.Lock()
+	mock.lockUpdateUser.Lock()
 	mock.calls.UpdateUser = append(mock.calls.UpdateUser, callInfo)
-	lockProviderMockUpdateUser.Unlock()
+	mock.lockUpdateUser.Unlock()
 	return mock.UpdateUserFunc(email, user)
 }
 
@@ -395,8 +392,8 @@ func (mock *ProviderMock) UpdateUserCalls() []struct {
 		Email string
 		User  internal.User
 	}
-	lockProviderMockUpdateUser.RLock()
+	mock.lockUpdateUser.RLock()
 	calls = mock.calls.UpdateUser
-	lockProviderMockUpdateUser.RUnlock()
+	mock.lockUpdateUser.RUnlock()
 	return calls
 }

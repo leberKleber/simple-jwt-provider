@@ -19,19 +19,8 @@ func TestNewConfig(t *testing.T) {
 	setEnv(t, "SJP_JWT_ISSUER", jwtIssuer)
 	jwtSubject := "myJWTSubject"
 	setEnv(t, "SJP_JWT_SUBJECT", jwtSubject)
-	dbHost := "myDBHost"
-	setEnv(t, "SJP_DB_HOST", dbHost)
-	expectedDBPort := 555
-	dbPort := "555"
-	setEnv(t, "SJP_DB_PORT", dbPort)
-	dbName := "myDBName"
-	setEnv(t, "SJP_DB_NAME", dbName)
-	dbUsername := "myDBUsername"
-	setEnv(t, "SJP_DB_USERNAME", dbUsername)
-	dbPassword := "myDBPassword"
-	setEnv(t, "SJP_DB_PASSWORD", dbPassword)
-	dbMigrationsFolderPath := "myDBMigrationsFolderPath"
-	setEnv(t, "SJP_DB_MIGRATIONS_FOLDER_PATH", dbMigrationsFolderPath)
+	dsn := "dsn"
+	setEnv(t, "SJP_DSN", dsn)
 	expectedAdminAPIEnable := true
 	adminAPIEnable := "true"
 	setEnv(t, "SJP_ADMIN_API_ENABLE", adminAPIEnable)
@@ -66,12 +55,7 @@ func TestNewConfig(t *testing.T) {
 	fieldEqual(t, "jwt>audience", cfg.JWT.Audience, jwtAudience)
 	fieldEqual(t, "jwt>issuer", cfg.JWT.Issuer, jwtIssuer)
 	fieldEqual(t, "jwt>subject", cfg.JWT.Subject, jwtSubject)
-	fieldEqual(t, "db>host", cfg.DB.Host, dbHost)
-	fieldEqual(t, "db>port", cfg.DB.Port, expectedDBPort)
-	fieldEqual(t, "db>name", cfg.DB.Name, dbName)
-	fieldEqual(t, "db>username", cfg.DB.Username, dbUsername)
-	fieldEqual(t, "db>password", cfg.DB.Password, dbPassword)
-	fieldEqual(t, "db>migrationsFolderPath", cfg.DB.MigrationsFolderPath, dbMigrationsFolderPath)
+	fieldEqual(t, "dsn", cfg.DSN, dsn)
 	// noinspection GoBoolExpressions
 	fieldEqual(t, "adminAPI>enable", cfg.AdminAPI.Enable, expectedAdminAPIEnable)
 	fieldEqual(t, "adminAPI>username", cfg.AdminAPI.Username, adminAPIUsername)
@@ -94,12 +78,7 @@ func TestNewConfigWithAdminAPIConstraint(t *testing.T) {
 	setEnv(t, "SJP_JWT_AUDIENCE", "myJWTAudience")
 	setEnv(t, "SJP_JWT_ISSUER", "myJWTIssuer")
 	setEnv(t, "SJP_JWT_SUBJECT", "myJWTSubject")
-	setEnv(t, "SJP_DB_HOST", "myDBHost")
-	setEnv(t, "SJP_DB_PORT", "555")
-	setEnv(t, "SJP_DB_NAME", "myDBName")
-	setEnv(t, "SJP_DB_USERNAME", "myDBUsername")
-	setEnv(t, "SJP_DB_PASSWORD", "myDBPassword")
-	setEnv(t, "SJP_DB_MIGRATIONS_FOLDER_PATH", "myDBMigrationsFolderPath")
+	setEnv(t, "SJP_DSN", "myDSN")
 	setEnv(t, "SJP_MAIL_TEMPLATES_FOLDER_PATH", "myAdminAPIMailTemplatesFolderPath")
 	setEnv(t, "SJP_MAIL_SMTP_HOST", "myMailSMTPHost")
 	setEnv(t, "SJP_MAIL_SMTP_PORT", "42")
@@ -193,12 +172,7 @@ func cleanupEnvs(t *testing.T) {
 	unsetEnv(t, "SJP_JWT_AUDIENCE")
 	unsetEnv(t, "SJP_JWT_ISSUER")
 	unsetEnv(t, "SJP_JWT_SUBJECT")
-	unsetEnv(t, "SJP_DB_HOST")
-	unsetEnv(t, "SJP_DB_PORT")
-	unsetEnv(t, "SJP_DB_NAME")
-	unsetEnv(t, "SJP_DB_USERNAME")
-	unsetEnv(t, "SJP_DB_PASSWORD")
-	unsetEnv(t, "SJP_DB_MIGRATIONS_FOLDER_PATH")
+	unsetEnv(t, "SJP_DSN")
 	unsetEnv(t, "SJP_MAIL_TEMPLATES_FOLDER_PATH")
 	unsetEnv(t, "SJP_MAIL_SMTP_HOST")
 	unsetEnv(t, "SJP_MAIL_SMTP_PORT")

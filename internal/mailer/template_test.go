@@ -94,13 +94,13 @@ func TestLoadTemplates(t *testing.T) {
 			}
 			textTemplateParseFiles = func(filenames ...string) (*textTemplate.Template, error) {
 				if !reflect.DeepEqual(filenames, tt.parseTextFileExpectedFilenames) {
-					t.Errorf("text mailTemplate file path is not as expected. Expected: %q, given: %q", tt.parseHTMLFileExpectedFilenames, filenames)
+					t.Errorf("text mailTemplate file path is not as expected. Expected: %q, given: %q", tt.parseTextFileExpectedFilenames, filenames)
 				}
 				return tt.parseTextFileTemplate, tt.parseTextFileErr
 			}
 			ymlTemplateParseFiles = func(filenames ...string) (*textTemplate.Template, error) {
 				if !reflect.DeepEqual(filenames, tt.parseYMLFileExpectedFilenames) {
-					t.Errorf("yml mailTemplate file path is not as expected. Expected: %q, given: %q", tt.parseHTMLFileExpectedFilenames, filenames)
+					t.Errorf("yml mailTemplate file path is not as expected. Expected: %q, given: %q", tt.parseYMLFileExpectedFilenames, filenames)
 				}
 				return tt.parseYMLFileTemplate, tt.parseYMLFileErr
 			}

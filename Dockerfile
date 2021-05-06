@@ -22,7 +22,6 @@ RUN apk add --update libcap tzdata && rm -rf /var/cache/apk/*
 
 COPY --from=build /src/simple-jwt-provider/simple-jwt-provider /simple-jwt-provider
 
-COPY db-migrations /db-migrations
 COPY mail-templates /mail-templates
 
 RUN setcap CAP_NET_BIND_SERVICE=+eip /simple-jwt-provider

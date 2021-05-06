@@ -14,11 +14,7 @@ services:
       SJP_JWT_AUDIENCE: "<audience>"
       SJP_JWT_ISSUER: "<issuer>"
       SJP_JWT_SUBJECT: "<subject>"
-      SJP_DB_HOST: "db"
-      SJP_DB_PORT: 5432
-      SJP_DB_NAME: "simple-jwt-provider"
-      SJP_DB_USERNAME: "postgres"
-      SJP_DB_PASSWORD: "postgres"
+      SJP_DSN: "host=db user=postgres password=postgres dbname=simple-jwt-provider port=5432 sslmode=disable"
       SJP_ADMIN_API_ENABLE: "true"
       SJP_ADMIN_API_USERNAME: "username"
       # escape $ with $

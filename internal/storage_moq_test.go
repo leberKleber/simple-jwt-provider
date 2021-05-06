@@ -8,62 +8,52 @@ import (
 	"sync"
 )
 
-var (
-	lockStorageMockCreateToken           sync.RWMutex
-	lockStorageMockCreateUser            sync.RWMutex
-	lockStorageMockDeleteToken           sync.RWMutex
-	lockStorageMockDeleteUser            sync.RWMutex
-	lockStorageMockTokensByEMailAndToken sync.RWMutex
-	lockStorageMockUpdateUser            sync.RWMutex
-	lockStorageMockUser                  sync.RWMutex
-)
-
 // Ensure, that StorageMock does implement Storage.
 // If this is not the case, regenerate this file with moq.
 var _ Storage = &StorageMock{}
 
 // StorageMock is a mock implementation of Storage.
 //
-//     func TestSomethingThatUsesStorage(t *testing.T) {
+// 	func TestSomethingThatUsesStorage(t *testing.T) {
 //
-//         // make and configure a mocked Storage
-//         mockedStorage := &StorageMock{
-//             CreateTokenFunc: func(t storage.Token) (int64, error) {
-// 	               panic("mock out the CreateToken method")
-//             },
-//             CreateUserFunc: func(user storage.User) error {
-// 	               panic("mock out the CreateUser method")
-//             },
-//             DeleteTokenFunc: func(id int64) error {
-// 	               panic("mock out the DeleteToken method")
-//             },
-//             DeleteUserFunc: func(email string) error {
-// 	               panic("mock out the DeleteUser method")
-//             },
-//             TokensByEMailAndTokenFunc: func(email string, token string) ([]storage.Token, error) {
-// 	               panic("mock out the TokensByEMailAndToken method")
-//             },
-//             UpdateUserFunc: func(user storage.User) error {
-// 	               panic("mock out the UpdateUser method")
-//             },
-//             UserFunc: func(email string) (storage.User, error) {
-// 	               panic("mock out the User method")
-//             },
-//         }
+// 		// make and configure a mocked Storage
+// 		mockedStorage := &StorageMock{
+// 			CreateTokenFunc: func(t *storage.Token) error {
+// 				panic("mock out the CreateToken method")
+// 			},
+// 			CreateUserFunc: func(user storage.User) error {
+// 				panic("mock out the CreateUser method")
+// 			},
+// 			DeleteTokenFunc: func(id uint) error {
+// 				panic("mock out the DeleteToken method")
+// 			},
+// 			DeleteUserFunc: func(email string) error {
+// 				panic("mock out the DeleteUser method")
+// 			},
+// 			TokensByEMailAndTokenFunc: func(email string, token string) ([]storage.Token, error) {
+// 				panic("mock out the TokensByEMailAndToken method")
+// 			},
+// 			UpdateUserFunc: func(user storage.User) error {
+// 				panic("mock out the UpdateUser method")
+// 			},
+// 			UserFunc: func(email string) (storage.User, error) {
+// 				panic("mock out the User method")
+// 			},
+// 		}
 //
-//         // use mockedStorage in code that requires Storage
-//         // and then make assertions.
+// 		// use mockedStorage in code that requires Storage
+// 		// and then make assertions.
 //
-//     }
+// 	}
 type StorageMock struct {
 	// CreateTokenFunc mocks the CreateToken method.
-	CreateTokenFunc func(t storage.Token) (int64, error)
+	CreateTokenFunc func(t *storage.Token) error
 
 	// CreateUserFunc mocks the CreateUser method.
 	CreateUserFunc func(user storage.User) error
 
 	// DeleteTokenFunc mocks the DeleteToken method.
-	DeleteTokenFunc func(id int64) error
+	DeleteTokenFunc func(id uint) error
 
 	// DeleteUserFunc mocks the DeleteUser method.
 	DeleteUserFunc func(email string) error
@@ -82,7 +72,7 @@ type StorageMock struct {
 		// CreateToken holds details about calls to the CreateToken method.
 		CreateToken []struct {
 			// T is the t argument value.
-			T storage.Token
+			T *storage.Token
 		}
 		// CreateUser holds details about calls to the CreateUser method.
 		CreateUser []struct {
@@ -92,7 +82,7 @@ type StorageMock struct {
 		// DeleteToken holds details about calls to the DeleteToken method.
 		DeleteToken []struct {
 			// ID is the id argument value.
-			ID int64
+			ID uint
 		}
 		// DeleteUser holds details about calls to the DeleteUser method.
 		DeleteUser []struct {
@@ -117,21 +107,28 @@ type StorageMock struct {
 			Email string
 		}
 	}
+	lockCreateToken           sync.RWMutex
+	lockCreateUser            sync.RWMutex
+	lockDeleteToken           sync.RWMutex
+	lockDeleteUser            sync.RWMutex
+	lockTokensByEMailAndToken sync.RWMutex
+	lockUpdateUser            sync.RWMutex
+	lockUser                  sync.RWMutex
 }
 
 // CreateToken calls CreateTokenFunc.
-func (mock *StorageMock) CreateToken(t storage.Token) (int64, error) {
+func (mock *StorageMock) CreateToken(t *storage.Token) error {
 	if mock.CreateTokenFunc == nil {
 		panic("StorageMock.CreateTokenFunc: method is nil but Storage.CreateToken was just called")
 	}
 	callInfo := struct {
-		T storage.Token
+		T *storage.Token
 	}{
 		T: t,
 	}
-	lockStorageMockCreateToken.Lock()
+	mock.lockCreateToken.Lock()
 	mock.calls.CreateToken = append(mock.calls.CreateToken, callInfo)
-	lockStorageMockCreateToken.Unlock()
+	mock.lockCreateToken.Unlock()
 	return mock.CreateTokenFunc(t)
 }
 
@@ -139,14 +136,14 @@ func (mock *StorageMock) CreateToken(t storage.Token) (int64, error) {
 // Check the length with:
 //     len(mockedStorage.CreateTokenCalls())
 func (mock *StorageMock) CreateTokenCalls() []struct {
-	T storage.Token
+	T *storage.Token
 } {
 	var calls []struct {
-		T storage.Token
+		T *storage.Token
 	}
-	lockStorageMockCreateToken.RLock()
+	mock.lockCreateToken.RLock()
 	calls = mock.calls.CreateToken
-	lockStorageMockCreateToken.RUnlock()
+	mock.lockCreateToken.RUnlock()
 	return calls
 }
 
@@ -160,9 +157,9 @@ func (mock *StorageMock) CreateUser(user storage.User) error {
 	}{
 		User: user,
 	}
-	lockStorageMockCreateUser.Lock()
+	mock.lockCreateUser.Lock()
 	mock.calls.CreateUser = append(mock.calls.CreateUser, callInfo)
-	lockStorageMockCreateUser.Unlock()
+	mock.lockCreateUser.Unlock()
 	return mock.CreateUserFunc(user)
 }
 
@@ -175,25 +172,25 @@ func (mock *StorageMock) CreateUserCalls() []struct {
 	var calls []struct {
 		User storage.User
 	}
-	lockStorageMockCreateUser.RLock()
+	mock.lockCreateUser.RLock()
 	calls = mock.calls.CreateUser
-	lockStorageMockCreateUser.RUnlock()
+	mock.lockCreateUser.RUnlock()
 	return calls
 }
 
 // DeleteToken calls DeleteTokenFunc.
-func (mock *StorageMock) DeleteToken(id int64) error {
+func (mock *StorageMock) DeleteToken(id uint) error {
 	if mock.DeleteTokenFunc == nil {
 		panic("StorageMock.DeleteTokenFunc: method is nil but Storage.DeleteToken was just called")
 	}
 	callInfo := struct {
-		ID int64
+		ID uint
 	}{
 		ID: id,
 	}
-	lockStorageMockDeleteToken.Lock()
+	mock.lockDeleteToken.Lock()
 	mock.calls.DeleteToken = append(mock.calls.DeleteToken, callInfo)
-	lockStorageMockDeleteToken.Unlock()
+	mock.lockDeleteToken.Unlock()
 	return mock.DeleteTokenFunc(id)
 }
 
@@ -201,14 +198,14 @@ func (mock *StorageMock) DeleteToken(id int64) error {
 // Check the length with:
 //     len(mockedStorage.DeleteTokenCalls())
 func (mock *StorageMock) DeleteTokenCalls() []struct {
-	ID int64
+	ID uint
 } {
 	var calls []struct {
-		ID int64
+		ID uint
 	}
-	lockStorageMockDeleteToken.RLock()
+	mock.lockDeleteToken.RLock()
 	calls = mock.calls.DeleteToken
-	lockStorageMockDeleteToken.RUnlock()
+	mock.lockDeleteToken.RUnlock()
 	return calls
 }
 
@@ -222,9 +219,9 @@ func (mock *StorageMock) DeleteUser(email string) error {
 	}{
 		Email: email,
 	}
-	lockStorageMockDeleteUser.Lock()
+	mock.lockDeleteUser.Lock()
 	mock.calls.DeleteUser = append(mock.calls.DeleteUser, callInfo)
-	lockStorageMockDeleteUser.Unlock()
+	mock.lockDeleteUser.Unlock()
 	return mock.DeleteUserFunc(email)
 }
 
@@ -237,9 +234,9 @@ func (mock *StorageMock) DeleteUserCalls() []struct {
 	var calls []struct {
 		Email string
 	}
-	lockStorageMockDeleteUser.RLock()
+	mock.lockDeleteUser.RLock()
 	calls = mock.calls.DeleteUser
-	lockStorageMockDeleteUser.RUnlock()
+	mock.lockDeleteUser.RUnlock()
 	return calls
 }
 
@@ -255,9 +252,9 @@ func (mock *StorageMock) TokensByEMailAndToken(email string, token string) ([]st
 		Email: email,
 		Token: token,
 	}
-	lockStorageMockTokensByEMailAndToken.Lock()
+	mock.lockTokensByEMailAndToken.Lock()
 	mock.calls.TokensByEMailAndToken = append(mock.calls.TokensByEMailAndToken, callInfo)
-	lockStorageMockTokensByEMailAndToken.Unlock()
+	mock.lockTokensByEMailAndToken.Unlock()
 	return mock.TokensByEMailAndTokenFunc(email, token)
 }
 
@@ -272,9 +269,9 @@ func (mock *StorageMock) TokensByEMailAndTokenCalls() []struct {
 		Email string
 		Token string
 	}
-	lockStorageMockTokensByEMailAndToken.RLock()
+	mock.lockTokensByEMailAndToken.RLock()
 	calls = mock.calls.TokensByEMailAndToken
-	lockStorageMockTokensByEMailAndToken.RUnlock()
+	mock.lockTokensByEMailAndToken.RUnlock()
 	return calls
 }
 
@@ -288,9 +285,9 @@ func (mock *StorageMock) UpdateUser(user storage.User) error {
 	}{
 		User: user,
 	}
-	lockStorageMockUpdateUser.Lock()
+	mock.lockUpdateUser.Lock()
 	mock.calls.UpdateUser = append(mock.calls.UpdateUser, callInfo)
-	lockStorageMockUpdateUser.Unlock()
+	mock.lockUpdateUser.Unlock()
 	return mock.UpdateUserFunc(user)
 }
 
@@ -303,9 +300,9 @@ func (mock *StorageMock) UpdateUserCalls() []struct {
 	var calls []struct {
 		User storage.User
 	}
-	lockStorageMockUpdateUser.RLock()
+	mock.lockUpdateUser.RLock()
 	calls = mock.calls.UpdateUser
-	lockStorageMockUpdateUser.RUnlock()
+	mock.lockUpdateUser.RUnlock()
 	return calls
 }
 
@@ -319,9 +316,9 @@ func (mock *StorageMock) User(email string) (storage.User, error) {
 	}{
 		Email: email,
 	}
-	lockStorageMockUser.Lock()
+	mock.lockUser.Lock()
 	mock.calls.User = append(mock.calls.User, callInfo)
-	lockStorageMockUser.Unlock()
+	mock.lockUser.Unlock()
 	return mock.UserFunc(email)
 }
 
@@ -334,8 +331,8 @@ func (mock *StorageMock) UserCalls() []struct {
 	var calls []struct {
 		Email string
 	}
-	lockStorageMockUser.RLock()
+	mock.lockUser.RLock()
 	calls = mock.calls.User
-	lockStorageMockUser.RUnlock()
+	mock.lockUser.RUnlock()
 	return calls
 }
