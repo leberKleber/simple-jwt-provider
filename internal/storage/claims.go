@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// Claims encapsulates database json-claims
 type Claims map[string]interface{}
 
 // Scan scan value into Claims
