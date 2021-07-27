@@ -93,8 +93,8 @@ openssl ec -in ecdsa-p521-private.pem -pubout -out ecdsa-p521-public.pem
 | SJP_JWT_AUDIENCE                  | Audience private claim which will be applied in each JWT                              | no                                  | -                     |
 | SJP_JWT_ISSUER                    | Issuer private claim which will be applied in each JWT                                | no                                  | -                     |
 | SJP_JWT_SUBJECT                   | Subject private claim which will be applied in each JWT                               | no                                  | -                     |
-| SJP_DSN                           | Data Source Name for persistence                                                      | yes                                 | -                     |
-| SJP_MIGRATIONS_FOLDER_PATH        | Database Migrations Folder Path                                                       | no                                  | /db-migrations        |
+| SJP_DATABASE_TYPE                 | Database type. Currently supported postgres and sqlite                                | yes                                 | -                     |
+| SJP_DATABASE_TYPE                 | Data Source Name for persistence                                                      | yes                                 | -                     |
 | SJP_ADMIN_API_ENABLE              | Enable admin API to manage stored users (true / false)                                | no                                  | false                 |
 | SJP_ADMIN_API_USERNAME            | Basic Auth Username if enable-admin-api = true                                        | yes, when enable-admin-api = true   | -                     |
 | SJP_ADMIN_API_PASSWORD            | Basic Auth Password if enable-admin-api = true when is bcrypted prefix with 'bcrypt:' | yes, when enable-admin-api = true   | -                     |
