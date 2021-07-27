@@ -4,7 +4,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"math/big"
 	"testing"
 	"time"

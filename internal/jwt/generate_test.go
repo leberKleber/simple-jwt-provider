@@ -6,7 +6,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"testing"
 	"time"

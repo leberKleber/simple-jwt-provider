@@ -3,7 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
