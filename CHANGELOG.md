@@ -1,5 +1,6 @@
 # Changelog
-## unreleased
+## v2.0.0 (unreleased)
+- [[#25] use gorm as persistence layer](https://github.com/leberKleber/simple-jwt-provider/issues/25)
 - [[#22] make log level configurable and log as json](https://github.com/leberKleber/simple-jwt-provider/issues/22)
 
 ## v1.1.0
