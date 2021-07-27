@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 )
 

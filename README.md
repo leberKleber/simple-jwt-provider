@@ -5,7 +5,7 @@
 
 # simple-jwt-provider
 
-Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres persisted user, which
+Simple and lightweight JWT-Provider written in go (golang). It exhibits JWT for the in postgres or sqlite persisted user, which
 can be managed via api. Also, a password-reset flow via mail verification is available. User specific custom-claims also
 available for jwt-generation and mail rendering.
 

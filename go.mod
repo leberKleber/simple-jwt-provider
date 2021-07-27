@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/DusanKasan/parsemail v1.2.0
 	github.com/ardanlabs/conf v1.2.1
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang-migrate/migrate/v4 v4.7.1
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/google/uuid v1.1.1
