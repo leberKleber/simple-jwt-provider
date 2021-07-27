@@ -19,8 +19,10 @@ func TestNewConfig(t *testing.T) {
 	setEnv(t, "SJP_JWT_ISSUER", jwtIssuer)
 	jwtSubject := "myJWTSubject"
 	setEnv(t, "SJP_JWT_SUBJECT", jwtSubject)
-	dsn := "dsn"
-	setEnv(t, "SJP_DSN", dsn)
+	databaseDSN := "dsn"
+	setEnv(t, "SJP_DATABASE_DSN", databaseDSN)
+	databaseType := "type"
+	setEnv(t, "SJP_DATABASE_TYPE", databaseType)
 	expectedAdminAPIEnable := true
 	adminAPIEnable := "true"
 	setEnv(t, "SJP_ADMIN_API_ENABLE", adminAPIEnable)
@@ -55,7 +57,8 @@ func TestNewConfig(t *testing.T) {
 	fieldEqual(t, "jwt>audience", cfg.JWT.Audience, jwtAudience)
 	fieldEqual(t, "jwt>issuer", cfg.JWT.Issuer, jwtIssuer)
 	fieldEqual(t, "jwt>subject", cfg.JWT.Subject, jwtSubject)
-	fieldEqual(t, "dsn", cfg.DSN, dsn)
+	fieldEqual(t, "dsn", cfg.Database.DSN, databaseDSN)
+	fieldEqual(t, "dsn", cfg.Database.Type, databaseType)
 	// noinspection GoBoolExpressions
 	fieldEqual(t, "adminAPI>enable", cfg.AdminAPI.Enable, expectedAdminAPIEnable)
 	fieldEqual(t, "adminAPI>username", cfg.AdminAPI.Username, adminAPIUsername)
@@ -78,7 +81,8 @@ func TestNewConfigWithAdminAPIConstraint(t *testing.T) {
 	setEnv(t, "SJP_JWT_AUDIENCE", "myJWTAudience")
 	setEnv(t, "SJP_JWT_ISSUER", "myJWTIssuer")
 	setEnv(t, "SJP_JWT_SUBJECT", "myJWTSubject")
-	setEnv(t, "SJP_DSN", "myDSN")
+	setEnv(t, "SJP_DATABASE_DSN", "myDSN")
+	setEnv(t, "SJP_DATABASE_TYPE", "myType")
 	setEnv(t, "SJP_MAIL_TEMPLATES_FOLDER_PATH", "myAdminAPIMailTemplatesFolderPath")
 	setEnv(t, "SJP_MAIL_SMTP_HOST", "myMailSMTPHost")
 	setEnv(t, "SJP_MAIL_SMTP_PORT", "42")
@@ -172,7 +176,8 @@ func cleanupEnvs(t *testing.T) {
 	unsetEnv(t, "SJP_JWT_AUDIENCE")
 	unsetEnv(t, "SJP_JWT_ISSUER")
 	unsetEnv(t, "SJP_JWT_SUBJECT")
-	unsetEnv(t, "SJP_DSN")
+	unsetEnv(t, "SJP_DATABASE_DSN")
+	unsetEnv(t, "SJP_DATABASE_TYPE")
 	unsetEnv(t, "SJP_MAIL_TEMPLATES_FOLDER_PATH")
 	unsetEnv(t, "SJP_MAIL_SMTP_HOST")
 	unsetEnv(t, "SJP_MAIL_SMTP_PORT")
