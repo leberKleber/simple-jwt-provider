@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 // ErrIncorrectPassword returned when user authentication failed cause incorrect password
@@ -21,10 +20,8 @@ var ErrNoValidTokenFound = errors.New("no valid token found")
 // ErrInvalidToken returned when the give token is not valid
 var ErrInvalidToken = errors.New("given token is invalid")
 
-// ErrInvalidToken returned when the give token is not parsable
+// ErrTokenNotParsable returned when the give token is not parsable
 var ErrTokenNotParsable = errors.New("given token is not parsable")
-
-var nowFunc = time.Now
 
 // Login checks email / password combination and return a new access and refresh token if correct.
 // return ErrIncorrectPassword when password is incorrect

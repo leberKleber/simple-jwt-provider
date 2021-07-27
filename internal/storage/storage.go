@@ -1,10 +1,15 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+const dbTypePostgres = "postgres"
+const dbTypeSQLite = "sqlite"
 
 var sqlOpen = gorm.Open
 
@@ -13,10 +18,14 @@ type Storage struct {
 	db *gorm.DB
 }
 
-// New opens a new sql connection with the given configuration with a connection timeout of 30
-func New(dsn string) (*Storage, error) {
-	//dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err := sqlOpen(postgres.Open(dsn), &gorm.Config{})
+// New opens a new sql connection with the given configuration
+func New(dbType, dsn string) (*Storage, error) {
+	dialector, err := buildDialector(dbType, dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := sqlOpen(dialector, &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
@@ -29,4 +38,19 @@ func New(dsn string) (*Storage, error) {
 	return &Storage{
 		db: db,
 	}, nil
+}
+
+func buildDialector(dbType, dsn string) (gorm.Dialector, error) {
+	var dialector gorm.Dialector
+
+	switch dbType {
+	case dbTypePostgres:
+		dialector = postgres.Open(dsn)
+	case dbTypeSQLite:
+		dialector = sqlite.Open(dsn)
+	default:
+		return nil, errors.New("unsupported database type")
+	}
+
+	return dialector, nil
 }
