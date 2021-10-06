@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/mattn/go-sqlite3"
 	"gorm.io/gorm"
+	"reflect"
 )
 
 // User represent a persisted user
@@ -27,10 +29,18 @@ var ErrUserAlreadyExists = errors.New("user already exists")
 func (s *Storage) CreateUser(u User) error {
 	res := s.db.Create(&u)
 	if res.Error != nil {
-		pqErr, ok := res.Error.(pq.Error)
-		if ok && pqErr.Constraint == "unique_email" {
-			return ErrUserAlreadyExists
+		fmt.Println(reflect.TypeOf(res.Error))
+		switch err := res.Error.(type) {
+		case pq.Error:
+			if err.Constraint == "unique_email" {
+				return ErrUserAlreadyExists
+			}
+		case sqlite3.Error:
+			if err.Error() == "UNIQUE constraint failed: users.e_mail" {
+				return ErrUserAlreadyExists
+			}
 		}
+
 		return fmt.Errorf("failed to exec create user stmt: %w", res.Error)
 	}
 
