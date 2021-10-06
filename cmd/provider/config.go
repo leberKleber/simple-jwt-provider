@@ -22,7 +22,7 @@ type config struct {
 	}
 	Database struct {
 		Type string `conf:"env:DATABASE_TYPE,help:Database type. Currently supported postgres and sqlite,required"`
-		DSN  string `conf:"env:DATABASE_DSN,help:Data Source Name for persistence,noprint"`
+		DSN  string `conf:"env:DATABASE_DSN,help:Data Source Name for persistence,required,noprint"`
 	}
 	AdminAPI struct {
 		Enable   bool   `conf:"env:ADMIN_API_ENABLE,help:Enable admin API to manage stored users (true / false),default:false"`
