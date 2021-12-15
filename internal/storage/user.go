@@ -26,7 +26,7 @@ var ErrUserAlreadyExists = errors.New("user already exists")
 // CreateUser persists the given user in database
 // return ErrUserNotFound when user not found
 // return ErrUserAlreadyExists when user already exists
-func (s *Storage) CreateUser(u User) error {
+func (s *Postgres) CreateUser(u User) error {
 	res := s.db.Create(&u)
 	if res.Error != nil {
 		fmt.Println(reflect.TypeOf(res.Error))
@@ -49,7 +49,7 @@ func (s *Storage) CreateUser(u User) error {
 
 // User finds the user identified by email
 // return ErrUserNotFound when user not found
-func (s *Storage) User(email string) (User, error) {
+func (s *Postgres) User(email string) (User, error) {
 	var user User
 
 	err := s.db.First(&user, User{EMail: email}).Error
@@ -64,7 +64,7 @@ func (s *Storage) User(email string) (User, error) {
 
 // UpdateUser updates all properties (excluding email) from the given user which will be identified by email
 // return ErrUserNotFound when user not found
-func (s *Storage) UpdateUser(u User) error {
+func (s *Postgres) UpdateUser(u User) error {
 	res := s.db.Updates(u)
 	if res.Error != nil {
 		return fmt.Errorf("failed to exec update user stmt: %w", res.Error)
@@ -79,7 +79,7 @@ func (s *Storage) UpdateUser(u User) error {
 
 // DeleteUser deletes the user with the given email and all corresponding tokes in one transaction.
 // return ErrUserNotFound when user not found
-func (s *Storage) DeleteUser(email string) error {
+func (s *Postgres) DeleteUser(email string) error {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := s.db.Delete(&Token{}, Token{EMail: email}).Error
 		if err != nil {

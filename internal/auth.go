@@ -86,7 +86,7 @@ func (p Provider) Refresh(refreshToken string) (newAccessToken, newRefreshToken 
 		return "", "", errors.New("jit claim is not parsable as string")
 	}
 
-	//TODO do Storage.TokensByEMailAndToken and Storage.DeleteToken in transaction
+	//TODO do Postgres.TokensByEMailAndToken and Postgres.DeleteToken in transaction
 	tokens, err := p.Storage.TokensByEMailAndToken(email, tokenID)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to find refresh-tokens: %w", err)
@@ -176,7 +176,7 @@ func (p Provider) CreatePasswordResetRequest(email string) error {
 // ResetPassword resets the password of the given account if the reset token is correct.
 // return ErrNoValidTokenFound no valid token could be found
 func (p *Provider) ResetPassword(email, resetToken, newPassword string) error {
-	//TODO do Storage.TokensByEMailAndToken and Storage.DeleteToken in transaction
+	//TODO do Postgres.TokensByEMailAndToken and Postgres.DeleteToken in transaction
 	tokens, err := p.Storage.TokensByEMailAndToken(email, resetToken)
 	if err != nil {
 		return fmt.Errorf("failed to find reset-tokens: %w", err)

@@ -7,7 +7,7 @@ networks:
 services:
   simple-jwt-provider:
     build:
-      context: .
+      context: ..
     restart: on-failure
     environment:
       SJP_JWT_PRIVATE_KEY: "\n-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIASzDZeTVLxcE5KTAmwrKwFjzr5cDrA+tttx9XRUz0K7AlROtj7cMG\nrHu/bdKj7lc2WaW8x/EOrU/FeCcsIL5nTH+gBwYFK4EEACOhgYkDgYYABAFBJr90\nWldGrPppBCbHqw2nGXeafxnSj6qB+A7E8A/G74mmmwIaqtf/pJ5QjqTPcAVUAEYF\nTz/0SPO3tPL1Ym3V0QH7TfnTf7EueabJqPdsSGR6uvbb2YOA9vy4OU8SXp/9a/4x\nr94giWgKjxYkB7xiy+IiZsWEBXU0rz7rb+IwJ82PfQ==\n-----END EC PRIVATE KEY-----"

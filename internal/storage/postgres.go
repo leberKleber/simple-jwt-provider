@@ -13,13 +13,13 @@ const dbTypeSQLite = "sqlite"
 
 var sqlOpen = gorm.Open
 
-// Storage should be created via New and provides user and token database operation. Before access database Migrate should be called
-type Storage struct {
+// Postgres should be created via New and provides user and token database operation. Before access database Migrate should be called
+type Postgres struct {
 	db *gorm.DB
 }
 
 // New opens a new sql connection with the given configuration
-func New(dbType, dsn string) (*Storage, error) {
+func NewPostgres(dbType, dsn string) (*Postgres, error) {
 	dialector, err := buildDialector(dbType, dsn)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func New(dbType, dsn string) (*Storage, error) {
 		return nil, fmt.Errorf("failed to auto-migrate persistence: %w", err)
 	}
 
-	return &Storage{
+	return &Postgres{
 		db: db,
 	}, nil
 }

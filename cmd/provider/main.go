@@ -36,7 +36,7 @@ func main() {
 	}
 	logrus.WithField("configuration", cfgAsString).Info("Starting provider")
 
-	s, err := storage.New(cfg.Database.Type, cfg.Database.DSN)
+	s, err := storage.NewPostgres(cfg.Database.Type, cfg.Database.DSN)
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not create storage")
 	}

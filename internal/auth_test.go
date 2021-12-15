@@ -455,15 +455,15 @@ func TestProvider_Refresh(t *testing.T) {
 			}
 
 			if givenTokensByEMailAndTokenEMail != tt.email {
-				t.Errorf("Storage.TokensByEMailAndToken email is not as expected.\nExpected:%s\nGiven:%s", tt.email, givenTokensByEMailAndTokenEMail)
+				t.Errorf("Postgres.TokensByEMailAndToken email is not as expected.\nExpected:%s\nGiven:%s", tt.email, givenTokensByEMailAndTokenEMail)
 			}
 
 			if tt.expectedJWTID != givenTokensByEMailAndTokenToken {
-				t.Errorf("Storage.TokensByEMailAndToken token is not as expected.\nExpected:%q\nGiven:%q", tt.expectedJWTID, givenTokensByEMailAndTokenToken)
+				t.Errorf("Postgres.TokensByEMailAndToken token is not as expected.\nExpected:%q\nGiven:%q", tt.expectedJWTID, givenTokensByEMailAndTokenToken)
 			}
 
 			if givenDeleteTokenID != tt.expectedTokenID {
-				t.Errorf("Storage.DeleteToken id is not as expected.\nExpected:%d\nGiven:%d", tt.expectedTokenID, givenDeleteTokenID)
+				t.Errorf("Postgres.DeleteToken id is not as expected.\nExpected:%d\nGiven:%d", tt.expectedTokenID, givenDeleteTokenID)
 			}
 		})
 	}

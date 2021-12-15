@@ -5,10 +5,10 @@ export BUILD_ID
 
 networkName="component-tests-$BUILD_ID"
 
-docker build -f component-tests.Dockerfile -t ct-runner:$BUILD_ID .
+docker build -f Dockerfile -t ct-runner:$BUILD_ID .
 docker network create $networkName
 
-docker-compose -f component-tests.docker-compose.yml up -d --build
+docker-compose -f docker-compose.yml up -d --build
 
 set +e
 docker run --rm -e "WUC_EXPECTED=200" \
@@ -30,10 +30,10 @@ else
 fi
 
 if [[ "$test_result" -gt 0 ]]; then
-  docker-compose -f component-tests.docker-compose.yml logs
+  docker-compose logs
 fi
 
-docker-compose -f component-tests.docker-compose.yml down
+docker-compose down
 docker network rm $networkName
 
 exit $test_result

@@ -24,7 +24,7 @@ type Token struct {
 }
 
 // CreateToken persists the given token in database. EMail must match to a users email. ID will be set automatically.
-func (s Storage) CreateToken(t *Token) error {
+func (s Postgres) CreateToken(t *Token) error {
 	res := s.db.Create(t)
 
 	if res.Error != nil {
@@ -35,7 +35,7 @@ func (s Storage) CreateToken(t *Token) error {
 }
 
 // TokensByEMailAndToken finds all tokens which matches the given email and token.
-func (s Storage) TokensByEMailAndToken(email, token string) ([]Token, error) {
+func (s Postgres) TokensByEMailAndToken(email, token string) ([]Token, error) {
 	var tokens []Token
 	res := s.db.Find(&tokens, &Token{EMail: email, Token: token})
 
@@ -48,7 +48,7 @@ func (s Storage) TokensByEMailAndToken(email, token string) ([]Token, error) {
 
 // DeleteToken deletes token with the given ID.
 // return ErrTokenNotFound there is no token with the given ID
-func (s Storage) DeleteToken(id uint) error {
+func (s Postgres) DeleteToken(id uint) error {
 	res := s.db.Delete(&Token{}, id)
 	if res.Error != nil {
 		return fmt.Errorf("failed to delete token: %w", res.Error)

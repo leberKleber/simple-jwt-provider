@@ -1,7 +1,7 @@
 version: '3.5'
 services:
   simple-jwt-provider:
-    image: leberkleber/simple-jwt-provider:v2.0.0
+    image: leberkleber/simple-jwt-provider
     restart: on-failure
     ports:
       - "8080:8080"

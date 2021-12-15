@@ -5,7 +5,7 @@ import (
 	"github.com/leberKleber/simple-jwt-provider/internal/storage"
 )
 
-// Storage encapsulates storage.Storage to generate mocks
+// Storage encapsulates storage.Postgres to generate mocks
 //go:generate moq -out storage_moq_test.go . Storage
 type Storage interface {
 	User(email string) (storage.User, error)

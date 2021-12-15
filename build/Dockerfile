@@ -8,22 +8,22 @@ ENV GOPATH=/
 
 WORKDIR /src/simple-jwt-provider/
 
-COPY go.mod .
-COPY go.sum .
+COPY ./go.mod .
+COPY ./go.sum .
 RUN go mod download
 
 COPY . .
-RUN go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o simple-jwt-provider ./cmd/provider/
-#RUN go build -ldflags -s -a -installsuffix cgo
+#RUN go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o simple-jwt-provider ./cmd/provider/
+RUN go build -ldflags -s -a -installsuffix cgo -o simple-jwt-provider ./cmd/provider
 
 # Service definition
 FROM alpine
 
-RUN apk add --update libcap tzdata util-linux-dev && rm -rf /var/cache/apk/*
+RUN apk add --update libcap gcompat tzdata  && rm -rf /var/cache/apk/*
 
 COPY --from=build /src/simple-jwt-provider/simple-jwt-provider /simple-jwt-provider
 
-COPY mail-templates /mail-templates
+COPY ../mail-templates /mail-templates
 
 RUN setcap CAP_NET_BIND_SERVICE=+eip /simple-jwt-provider
 

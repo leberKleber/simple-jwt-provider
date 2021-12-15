@@ -119,7 +119,7 @@ type StorageMock struct {
 // CreateToken calls CreateTokenFunc.
 func (mock *StorageMock) CreateToken(t *storage.Token) error {
 	if mock.CreateTokenFunc == nil {
-		panic("StorageMock.CreateTokenFunc: method is nil but Storage.CreateToken was just called")
+		panic("StorageMock.CreateTokenFunc: method is nil but Postgres.CreateToken was just called")
 	}
 	callInfo := struct {
 		T *storage.Token
@@ -150,7 +150,7 @@ func (mock *StorageMock) CreateTokenCalls() []struct {
 // CreateUser calls CreateUserFunc.
 func (mock *StorageMock) CreateUser(user storage.User) error {
 	if mock.CreateUserFunc == nil {
-		panic("StorageMock.CreateUserFunc: method is nil but Storage.CreateUser was just called")
+		panic("StorageMock.CreateUserFunc: method is nil but Postgres.CreateUser was just called")
 	}
 	callInfo := struct {
 		User storage.User
@@ -181,7 +181,7 @@ func (mock *StorageMock) CreateUserCalls() []struct {
 // DeleteToken calls DeleteTokenFunc.
 func (mock *StorageMock) DeleteToken(id uint) error {
 	if mock.DeleteTokenFunc == nil {
-		panic("StorageMock.DeleteTokenFunc: method is nil but Storage.DeleteToken was just called")
+		panic("StorageMock.DeleteTokenFunc: method is nil but Postgres.DeleteToken was just called")
 	}
 	callInfo := struct {
 		ID uint
@@ -212,7 +212,7 @@ func (mock *StorageMock) DeleteTokenCalls() []struct {
 // DeleteUser calls DeleteUserFunc.
 func (mock *StorageMock) DeleteUser(email string) error {
 	if mock.DeleteUserFunc == nil {
-		panic("StorageMock.DeleteUserFunc: method is nil but Storage.DeleteUser was just called")
+		panic("StorageMock.DeleteUserFunc: method is nil but Postgres.DeleteUser was just called")
 	}
 	callInfo := struct {
 		Email string
@@ -243,7 +243,7 @@ func (mock *StorageMock) DeleteUserCalls() []struct {
 // TokensByEMailAndToken calls TokensByEMailAndTokenFunc.
 func (mock *StorageMock) TokensByEMailAndToken(email string, token string) ([]storage.Token, error) {
 	if mock.TokensByEMailAndTokenFunc == nil {
-		panic("StorageMock.TokensByEMailAndTokenFunc: method is nil but Storage.TokensByEMailAndToken was just called")
+		panic("StorageMock.TokensByEMailAndTokenFunc: method is nil but Postgres.TokensByEMailAndToken was just called")
 	}
 	callInfo := struct {
 		Email string
@@ -278,7 +278,7 @@ func (mock *StorageMock) TokensByEMailAndTokenCalls() []struct {
 // UpdateUser calls UpdateUserFunc.
 func (mock *StorageMock) UpdateUser(user storage.User) error {
 	if mock.UpdateUserFunc == nil {
-		panic("StorageMock.UpdateUserFunc: method is nil but Storage.UpdateUser was just called")
+		panic("StorageMock.UpdateUserFunc: method is nil but Postgres.UpdateUser was just called")
 	}
 	callInfo := struct {
 		User storage.User
@@ -309,7 +309,7 @@ func (mock *StorageMock) UpdateUserCalls() []struct {
 // User calls UserFunc.
 func (mock *StorageMock) User(email string) (storage.User, error) {
 	if mock.UserFunc == nil {
-		panic("StorageMock.UserFunc: method is nil but Storage.User was just called")
+		panic("StorageMock.UserFunc: method is nil but Postgres.User was just called")
 	}
 	callInfo := struct {
 		Email string
